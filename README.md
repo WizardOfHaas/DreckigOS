@@ -1,3 +1,4 @@
+<pre>
      ________________________
 =====|Dreckig OS User Manual|==
  ====|Alpha v0.007          |===
@@ -115,3 +116,4 @@ again. You can also enter commands here:
        q - quit without saving
        w - write file and quit
        t - display file
+</pre>
