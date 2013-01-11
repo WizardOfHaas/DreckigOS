@@ -62,3 +62,36 @@ porton:			;AX=1 for 1200 baud
 	int 14h
 	popa
 ret
+
+rpccmd:
+.loop
+	mov al,'A'
+	call sendserial
+	jmp .loop
+
+	mov si,.prmpt
+	mov di,buffer
+	call getinput
+	mov si,buffer
+	call serialprint
+ret
+	.prmpt db 'rpc>',0
+
+rpcind:
+.loop
+	jmp .receive
+	mov dx, 0
+	mov ax, 0
+	mov ah, 03h
+	int 14h
+
+	bt ax, 8
+	jc .receive
+	jmp .loop
+.receive
+	call getregs
+	call getserial
+	mov ah, 0Eh
+	int 10h
+	jmp .loop
+ret

@@ -1,206 +1,3 @@
-iconcmds times 18 db 0
-numicons db 0,0
-
-shellwin:
-	mov byte[.quit],0
-	mov cx,5
-	mov dx,5
-	mov si,250
-	mov di,195
-	call drawwin	
-	
-	mov dl,1
-	mov dh,1
-	call movecurs
-.loop
-	mov byte[guiprint.x],1
-	call shell
-	call killque
-	cmp byte[.quit],1
-	je .goquit
-	jmp .loop
-.goquit
-	call background
-.done
-ret
-	.quit db 0,0
-
-guishell:
-	call setupguishell
-	call drawguishell
-.loop
-	call selector
-	jmp .loop
-ret
-
-guialert:
-	pusha
-	mov cx,300
-	mov dx,180
-	mov si,320
-	mov di,200
-	mov al,12
-	call fillbox
-	popa
-ret
-
-guiclear:
-	mov cx,5
-	mov dx,5
-	mov si,250
-	mov di,195
-	call drawwin
-ret
-
-guiprint:
-	mov byte[gui],0
-	call getcurs
-	mov dl,byte[.x]
-	call movecurs
-	mov ah,0Eh
-	mov bl,2
-.repeat
-        lodsb
-        cmp al,0
-        je .done
-        int 10h
-	pusha
-	call getcurs
-	cmp dh,23		;[.ymax]
-	jge .scroll
-	cmp dl,31		;[.xmax]
-	jge .wrap
-	popa
-        jmp .repeat
-.scroll
-	popa
-	call scrollshell
-	jmp .repeat
-.wrap
-	popa
-	call wrapshell
-	jmp .repeat
-.done
-	mov byte[gui],1
-ret
-	.x db 0,0
-	.xmax db 0
-	.ymax db 0,0
-
-wrapshell:
-	call getcurs
-	add dh,1
-	mov dl,byte[guiprint.x]
-	call movecurs
-ret
-
-scrollshell:
-	mov ah,06h
-	mov al,1
-	mov bh,0
-	mov ch,1
-	mov cl,1
-	mov dh,23
-	mov dl,30
-	int 10h
-	call getcurs
-	sub dh,1
-	call movecurs
-ret
-
-setupguishell:
-	call killque
-	xor ax,ax
-	mov al,13h
-	int 10h
-
-	mov ax,1123h
-	mov bl,02h
-	int 10h
-
-	mov byte[numicons],0
-	mov byte[gui],1
-ret
-
-quitguishell:
-	call killque
-	mov byte[gui],0
-	xor ax,ax
-	mov al,03h
-	int 10h
-	mov ax,shell
-	call schedule
-	call main
-ret
-
-selector:
-	mov di,numicons
-	mov si,selected
-	call dokeys
-	jc .run
-	pusha
-	mov cx,290
-	mov dx,0
-	mov si,298
-	mov di,199
-	mov al,15
-	call fillbox
-	popa
-
-	mov ax,[selected]
-	mov bx,22
-	mul bx
-	mov cx,291
-	mov dx,ax
-	add dx,1
-	mov si,297
-	mov di,ax
-	add di,21
-	mov ax,02
-	call fillbox
-	jmp .done
-.run
-	mov bx,[selected]
-	mov ax,2
-	mul bx
-	mov bx,ax
-	mov ax,[iconcmds + bx]
-	call coopcall
-.done
-ret
-
-dokeys:
-	call waitkey
-	clc
-	cmp al,'q'
-	je .esc
-	cmp al,13
-	je .enter
-	cmp ah,48h
-	je .up
-	cmp ah,50h
-	jne .done
-	mov dl,byte[di]
-	sub dl,1
-	cmp byte[si],dl
-	jge .done
-	add byte[si],1
-	jmp .done
-.esc
-	mov ax,'QQ'
-	jmp .done
-.enter
-	stc
-	jmp .done
-.up
-	cmp byte[si],0
-	je .done
-	sub byte[si],1
-.done
-ret
-
-selected db 0,0
-
 shell:
 	mov si,prompt
         call print
@@ -208,34 +5,36 @@ shell:
         mov di,buffer
         call input
 
+	cmp byte[buffer],0
+	je .err
+
 	mov di,buffer
 	call commands
 	cmp ax,'fl'
 	jne .done
 
-	.script
-	call findfile
-	cmp ax,0
-	je .langtry
-	call gotask.runcmd
-	cmp ax,'fl'
-	jne .done
-.langtry
 	mov si,buffer
 	call parse
 	call langcommand
-	cmp ax,'nc'
-	jne .done
+	cmp ax,'er'
+	jne .done	
+
+	cmp byte[buffer],95
+	jge .err
+
+	mov si,buffer
+	call runbf
+	jmp .done
 .err
-	call err
+	jmp .done
 .done
+	mov si,buffer
+	call addtohist
 ret
 
 savecurs:
 	pusha
-	mov ah,03h
-	mov bx,0
-	int 10h
+	call getcurs
 	mov byte[.x],dl
 	mov byte[.y],dh
 	popa
@@ -245,17 +44,15 @@ ret
 
 loadcurs:
 	pusha
-	mov ah,02h
-	mov bx,0
 	mov dl,byte[savecurs.x]
 	mov dh,byte[savecurs.y]
-	int 10h
+	call movecurs
 	popa
 ret
 
 getcurs:
 	mov ah,03h
-	xor bx,bx
+	mov bx,0
 	int 10h
 ret
 
@@ -267,4 +64,148 @@ movecurs:
 	popa
 ret
 
-%INCLUDE "draw.asm"
+parse:
+	push si
+
+	mov ax, si			
+
+	mov bx, 0
+	mov cx, 0
+	mov dx, 0
+
+	push ax			
+
+.loop1:
+	lodsb				
+	cmp al, 0			
+	je .finish
+	cmp al, ' '			
+	jne .loop1
+	dec si
+	mov byte [si], 0		
+
+	inc si				
+	mov bx, si
+
+.loop2:					
+	lodsb
+	cmp al, 0
+	je .finish
+	cmp al, ' '
+	jne .loop2
+	dec si
+	mov byte [si], 0
+
+	inc si
+	mov cx, si
+
+.loop3:
+	lodsb
+	cmp al, 0
+	je .finish
+	cmp al, ' '
+	jne .loop3
+	dec si
+	mov byte [si], 0
+
+	inc si
+	mov dx, si
+
+.finish:
+	
+	pop ax
+	pop si
+ret
+
+compout:		;In - SI,DI, strings to compare Out - AX, length of similarity
+	xor dx,dx
+.loop			
+        mov al,[si]
+        mov bl,[di]
+        cmp al,bl
+        jne .done
+
+        cmp al,0
+        je .done
+
+        inc si
+        inc di
+	inc dx
+        jmp .loop
+.done
+	mov ax,dx
+ret
+
+closeenough:
+	push si
+	push di
+	call compout
+	cmp ax,2
+	jge .ok
+	jmp .notok
+.ok
+	stc
+	pop di
+	pop si
+ret
+.notok
+	clc
+	pop di
+	pop si
+ret
+
+histstart dw 0
+histend dw 0
+histpage dw 0
+
+inithist:
+	pusha
+	call malocbig
+	mov [histstart],ax
+	add ax,1024
+	mov [histend],ax
+	mov [histpage],bx
+	popa
+ret
+
+addtohist:
+	pusha
+	push si
+	mov ax,si
+	call length
+	push ax
+	mov si,[histstart]
+	call malocsmall
+	cmp ax,[histend]
+	pop ax
+	jge .shift
+	.ok
+	pop si
+	mov di,bx
+	call copystring
+	jmp .done
+.shift
+	mov di,[histstart]
+	mov si,di
+	add si,ax
+	sub bx,ax
+	mov ax,1024
+	call memcpy
+	jmp .ok
+.done
+	popa
+ret
+
+showhist:
+	mov si,[histstart]
+.typeloop
+	call print
+	call printret
+	mov ax,si
+	call length
+	add si,ax
+	add si,1
+	cmp byte[si],'0'
+	jne .typeloop
+.done
+ret

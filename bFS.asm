@@ -53,7 +53,6 @@ killfile:
 ret
 
 filelist:
-	mov byte[.files],0
 	mov si,void + 20
 	mov dx,si
 	add dx,1024
@@ -73,8 +72,7 @@ filelist:
 	cmp byte[si],0
 	je .loop
 	call print
-	call printret
-	add byte[.files],1
+	call printcol
 	jmp .loop
 .tag
 	sub si,1
@@ -86,9 +84,7 @@ filelist:
 	jmp .loop
 .done
 	call printret
-	mov ax,[.files]
 ret
-	.files db 0,0
 
 printcol:
 	pusha
@@ -110,33 +106,16 @@ ret
 findfile:
 	push si
 	push di					;Find file and give location
-	mov si,void + 20
-	mov bx,0
-.loop
-	cmp byte [si],'*'
-	je .file
-	cmp byte [si],'0'
-	je .err
-	add si,1
-	jmp .loop
-.file
-	mov dx,si
-	add si,2
-	call compare
-	jc .found
-	jmp .loop
-.found
-	sub si,2
-	mov si,dx
-	mov ax,si
-	add si,1
-	mov bx,0
-	mov bl,[si]
-	add bx,ax
-	jmp .done
+	mov si,di
+	mov bx,void
+	call gethashfile
+	cmp ax,'er'
+	jne .done
 .err
 	mov ax,0
 .done	
+	mov ax,void
+	mov bx,void + 512
 	pop di
 	pop si
 ret
@@ -149,45 +128,12 @@ copyfile:			;Copy file IN, di,name source, si,name destination
 	pop si
 	mov di,.sname
 	call copystring
-	
-	mov di,.sname
-	call findfile
-	sub bx,ax
-	xchg ax,bx
-	
-	pusha
-	mov ax,2
-	call maloc
-	popa
-	
-	mov si,.dname
-	call newfile
-	mov di,.dname
-	call findfile
-	push ax
-	push bx
 
 	mov di,.sname
 	call findfile
-	mov dx,bx
-	mov cx,ax
-	pop bx
-	pop ax
-	mov si,cx
-	mov di,ax
-	add si,10
-	add di,10
-	add dx,1
-.copyloop
-	mov ax,[si]
-	mov [di],ax
-	add si,1
-	add di,1
-	cmp si,void + 1024
-	jge .done
-	cmp si,dx
-	jge .done
-	jmp .copyloop
+	mov si,.dname
+	mov bx,void
+	call puthashfile
 .done
 	popa
 ret
@@ -260,33 +206,6 @@ pullfile:
 	call movemem
 ret
 	.tmp db 'mtmp',0
-
-getindex:
-	push ax
-	call findfile
-	add ax,12
-	mov di,ax
-	pop ax
-	mov cx,0
-.loop
-	cmp byte[di],0
-	je .index
-	add di,1
-	cmp di,bx
-	jge .err	
-	jmp .loop
-.index
-	cmp cx,ax
-	je .done
-	add cx,1
-	add di,1
-	jmp .loop
-.err
-	sub di,1
-	mov ax,'ne'
-.done
-	add di,1
-ret
 
 newtag:				;Make a tag, SI, name, DI, value
 	push di
@@ -420,7 +339,7 @@ l2hts:
 	mov dx, 0			
 	div word [.SecsPerTrack]	
 	mov dx, 0
-	div word [.Sides]		
+	div word [.Sides]
 	mov dh, dl			
 	mov ch, al			
 	pop ax
@@ -431,11 +350,29 @@ ret
 	.SecsPerTrack dw 18
 
 getdirsec:
+	xor cx,cx
+.loop
+	cmp cx,3
+	jge .done
+	clc
+	pusha
+	call trydirsec
+	popa
+	jc .fail
+	jmp .done
+.fail
+	add cx,1
+	jmp .loop
+.done
+ret
+
+trydirsec:
 	mov ax,19
 	call l2hts
 	mov bx,void + 1024
 	mov ah,2
 	mov al,2
+	stc
 	int 13h
 ret
 
@@ -542,6 +479,8 @@ vfs2disk:
 	push bx
 	call resetfloppy
 	call findfile
+	cmp ax,0
+	je .err
 	sub bx,6
 	mov ax,word[bx]
 	add ax,31
@@ -567,6 +506,7 @@ vfs2disk:
 	popa
 .err
 	call err
+	mov ax,'er'
 .done
 	popa
 ret
@@ -601,21 +541,6 @@ isvfs:
 	jmp .done
 .is
 	mov ax,'VF'
-.done
-ret
-
-print?file:
-	pusha
-	call isvfs
-	cmp ax,'VF'
-	je .vf
-	popa
-	call findfile
-	call printfile
-	jmp .done
-.vf
-	popa
-	call printvf
 .done
 ret
 
@@ -817,49 +742,15 @@ resetvfs:
 ret
 
 saveramdisk:
-	mov di,.disk
-	call getvfsdata
-	mov ah,3
-	mov al,1
+	mov si,.disk
 	mov bx,void
-	int 13h
+	call puthashfile
 ret
-	.disk db 'DISK',0
+	.disk db 'disk',0
 
 loadramdisk:
-	mov di,.disk
+	mov si,.disk
 	mov bx,void
-	call vfs2disk
-	call resetvfs
+	call gethashfile
 ret
-	.disk db 'DISK',0
-
-getfileindex:
-	xor bx,bx
-	cmp ax,0
-	je .0
-	mov di,void + 15
-.loop
-	add di,1
-	cmp byte[di],'*'
-	je .file
-	jmp .loop
-.tag
-	add di,1
-	jmp .loop
-.file
-	cmp byte[di + 2],'*'
-	je .tag
-	add bx,1
-	cmp bx,ax
-	jg .done
-	xor ch,ch
-	mov cl,byte[di + 1]
-	add di,cx
-	jmp .loop
-.0
-	mov di,void + 20
-.done
-	mov si,di
-	add si,2
-ret
+	.disk db 'disk',0

@@ -1,32 +1,23 @@
 textedit:
 	.start
 	mov si,.name
-	call print
-	mov di,buffer
-	call input
-
-	mov si,buffer
-	mov di,.list
-	call compare
-	jc .listfiles
-
-	mov si,buffer
 	mov di,.filename
-	call copystring
-
-	mov di,.filename
-	call findfile
-	cmp ax,0
-	jne .type
+	call getinput
 
 	mov si,.filename
-	mov ax,11
-	call newfile
-	mov di,.filename
-	call findfile
+	call isfileempty
+	jc .type
+	
+	mov si,filesend
+	mov dx,filesend + 1024
+	call memclear
+
+	mov ax,1
+	call maloc
+	add ax,1
 	mov [.filestart],ax
+
 .loop
-	add byte [.lines],1
 	mov di,buffer
 	call input
 	
@@ -38,114 +29,97 @@ textedit:
 	mov ax,buffer
 	call length
 	call maloc
+	mov [.filend],ax
 	push ax
 	mov si,buffer
 	call load2mem
 	pop bx
-	add byte [.lines],1
+	mov byte[bx],0
 	jmp .loop
 .type
-	mov di,.filename
-	call tagprintfile
-.edit
-	mov si,.line
+	mov si,void + 4096
+.typeloop
 	call print
+	call printret
+	mov ax,si
+	call length
+	add si,ax	
+	add si,1
+	cmp byte[si],0
+	jne .typeloop
+.edit
+	call printret
+	mov si,.line
 	mov di,buffer
-	call input
-
+	call getinput
+	cmp byte[buffer],'q'
+	je .end
+	cmp byte[buffer],'t'
+	je .type
+	cmp byte[buffer],'w'
+	je .editdone
 	mov si,buffer
 	call toint
-	mov di,.filename
+	mov si,void + 4096
 	call getindex
-	push di
-	mov si,di
+	push si
 	call print
-
-	mov si,langcommand.outchar
-	call print
+	mov si,.outchar
 	mov di,buffer
-	call input
-	pop di
-	push di
-
-	mov ax,di
-	call length
-	push ax
-	mov ax,buffer
-	call length
-	pop bx
-	cmp ax,bx
-	jg .editgrow
-	jl .editshrink
-	.editok
+	call getinput
 	pop di
 	mov si,buffer
+	call fixsize
 	call copystring
-	jmp .done
-.editshrink
-	pop di
-	push di
-	mov si,di
-	add si,bx
-	add di,ax
-	mov ax,si
-	add ax,1024
-	call movemem
-	jmp .editok
-.editgrow
-	pop di
-	push di
-	mov si,di
-	add si,bx
-	add di,ax
-	mov ax,1024
-	call memcpy
-	jmp .editok
-.listfiles
-	call filelist
-	jmp .start
+	jmp .edit
+.editdone
+	mov bx,void + 4096
+	mov si,.filename
+	call puthashfile
+	jmp .end
 .done
 	mov ax,1
 	call maloc
-
-	mov si,[.filestart]
-	sub bl,[.filestart]
-	add si,1
-	mov [si],bl
-	mov si,[.filestart]
-	add si,10
-	mov al,'d'
-	mov [si],al
+	mov byte[bx],0
+	mov ax,bx
+	add ax,512
+	call zeroram
+	mov bx,[.filestart]
+	mov si,.filename
+	call puthashfile
 .end
 	call printret
 ret
-	.filestart db 0
-	.filend db 0
+	.filestart db 0,0
+	.filend db 0,0
 	.lines db 0
 	.filename times 16 db 0
 	.name db 'NAME>',0
 	.line db 'LINE>',0
 	.list db 'list',0
+	.outchar db '>',0
 
 printfile:
-	add ax,12
-	mov [.filend],bx
-	mov si,ax
+	mov bx,void + 4096
+	mov di,void + 4096
+	call printfilell
+ret
+
+printfilell:
+	push di
+	call gethashfile	
+	pop si
 .typeloop
 	call print
+	call printret
 	mov ax,si
 	call length
 	add si,ax
-	cmp si,[.filend]
-	jge .done
 	add si,1
-	call printret
-	cmp byte[si],'*'
-	je .done
-	jmp .typeloop
+	cmp byte[si],0
+	jne .typeloop
 .done
 ret
-	.filend db 0,0
 
 tagprintfile:
 	mov [.nextfile],di
@@ -174,3 +148,40 @@ tagprintfile:
 	call printret
 ret
 	.nextfile db 0,0
+
+fixsize:
+	pusha
+	mov [.src],si
+	mov [.dest],di
+	push di
+	mov ax,si
+	call length
+	pop di
+	push ax
+	mov ax,di
+	call length
+	pop bx
+	cmp ax,bx
+	jl .grow
+	jg .shrink
+	jmp .done
+.shrink
+	mov di,[.dest]
+	add di,bx
+	mov si,[.dest]
+	add si,ax
+	mov ax,512
+	call memcpy
+	jmp .done
+.grow
+	mov si,[.dest]
+	add si,ax
+	mov di,[.dest]
+	add di,bx
+	mov ax,512
+	call memcpy
+.done
+	popa
+ret
+	.src dw 0
+	.dest dw 0

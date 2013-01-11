@@ -11,11 +11,10 @@
 ;    You should have received a copy of the GNU General Public License
 ;    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;	
-;	copyright Sean Haas 2011-12
+;	copyright Sean Haas 2011-14
 ORG 100h
-
-JMP SHORT Init
-db 0
+jmp short Init
+sc1 db 0
 Init:
 	cli
 	mov ax,0
@@ -27,36 +26,37 @@ Init:
 	je bsod
 	mov byte[iscrash],1
 
-	mov ah,00h
-	mov al,03h
-	int 10h
-
 	mov si,splash
 	call print
-	
+
 	mov si,loadmem
 	call print
 	mov si,filesend + 1
 	mov dx,filesend + 1024
 	call memclear
+	call genmemtable
+	call printok
 
 	mov si,loadmulti
 	call print
 	mov word[currpid],taskque
 	mov ax,0
 	call multi
+	call printok
+
+	mov si,loadintsmsg
+	call print
+	call loadints
+	call printok
+
+	mov si,loadshell
+	call print
 	mov ax,shell
 	call schedule
 	mov word[shellpid],ax
+	call printok
 
-	mov si,loaddir
-	call print
-	call loadrootdir
-
-	call getpit
-	mov [starttime],ax
-
-	mov byte[colors + 2],2
+	call inithist
 
 	mov ax,0
 	call porton
@@ -73,16 +73,6 @@ Init:
         mov si,header
         call print
 
-	mov si,ips
-	call print
-	call getips
-	mov ax,bx
-	call tostring
-	mov si,ax
-	call print
-	mov si,ipsticks
-	call print
-
 	mov si,voidat
 	call print
 	mov ax,void
@@ -91,9 +81,10 @@ Init:
 	call print
 	call printret
 
-	call loadints
+	call login
 main:			;Main command loop
 	call yield
+	call sanitycheck
 jmp main
 
 getthread:		;Turns command into memory location
@@ -104,10 +95,6 @@ getthread:		;Turns command into memory location
 	mov si,reboot
 	call compare
 	jc .rebootcmd
-
-	mov si,time
-	call compare
-	jc .timecmd
 
         mov si,info
         call compare
@@ -141,10 +128,6 @@ getthread:		;Turns command into memory location
 	call compare
 	jc .regscmd
 
-	mov si,lang
-	call compare
-	jc .langcmd
-
 	mov si,task
 	call compare
 	jc .taskcmd
@@ -161,17 +144,9 @@ getthread:		;Turns command into memory location
 	call compare
 	jc .stackcmd
 
-	mov si,dte
-	call compare
-	jc .dtecmd
-
 	mov si,log
 	call compare
 	jc .logcmd
-
-	mov si,file
-	call compare
-	jc .filecmd
 
 	mov si,list
 	call compare
@@ -189,13 +164,45 @@ getthread:		;Turns command into memory location
 	call compare
 	jc .termcmd
 
-	mov si,ws
+	mov si,dte
 	call compare
-	jc .wscmd
+	jc .dtecmd
 
- 	mov si,quit
+	mov si,hash
 	call compare
-	jc .quitcmd
+	jc .hashcmd
+
+	mov si,userchar
+	call compare
+	jc .usercmd
+
+	mov si,quit
+	call compare
+	jc .locmd
+
+	mov si,lo
+	call compare
+	jc .locmd
+
+	mov si,killchar
+	call compare
+	jc .killcmd
+
+	mov si,bf
+	call compare
+	jc .bfcmd
+
+	mov si,crypt
+	call compare
+	jc .cryptcmd
+
+	mov si,hist
+	call compare
+	jc .histcmd
+
+	mov si,rpc
+	call compare
+	jc .rpccmd
 
 	.err
         mov ax,'fl'
@@ -207,9 +214,6 @@ getthread:		;Turns command into memory location
         jmp .done
 .rebootcmd
 	call reboot1
-.timecmd
-	mov ax,gettime
-	jmp .done
 .infocmd
 	mov ax,sysinfo
         jmp .done
@@ -235,9 +239,6 @@ getthread:		;Turns command into memory location
 .regscmd
 	mov ax,getregs
 	jmp .done
-.langcmd
-	mov ax,dreklang
-	jmp .done
 .taskcmd
 	mov ax,taskman
 	jmp .done
@@ -249,12 +250,6 @@ getthread:		;Turns command into memory location
 	jmp .done
 .stackcmd
 	call printstack
-	jmp .done
-.dtecmd
-	mov ax,textedit
-	jmp .done
-.filecmd
-	mov ax,fileman
 	jmp .done
 .listcmd
 	mov ax,filelist
@@ -268,11 +263,32 @@ getthread:		;Turns command into memory location
 .termcmd
 	mov ax,swapterm
 	jmp .done
-.wscmd
-	call guishell
+.dtecmd
+	mov ax,textedit
 	jmp .done
-.quitcmd
-	mov byte[shellwin.quit],1
+.hashcmd
+	mov ax,userhash
+	jmp .done
+.usercmd
+	mov ax,usercmd
+	jmp .done
+.locmd
+	mov ax,locmd
+	jmp .done
+.killcmd
+	call killcmd
+	jmp .done
+.bfcmd
+	mov ax,bfcmd
+	jmp .done
+.cryptcmd
+	mov ax,cryptcmd
+	jmp .done
+.histcmd
+	mov ax,showhist
+	jmp .done
+.rpccmd
+	mov ax,rpccmd
 .done
 ret
 
@@ -280,21 +296,28 @@ commands:
 	call getthread
 	cmp ax,'fl'
 	je .err
+	mov bx,[user]
+	cmp bx,'0'
+	jne .exclude
+	.ok
 	call coopcall
+	jmp .done
+.exclude
+	cmp ax,unsecure
+	jge .ok
 .err
+.done
 ret
 
         loading db 13,10,'Loading',0
-	loadmem db 'Setting Up Memory Allocater...',13,10,0
-	loadmulti db 'Setting Up Multi-Threading...',13,10,0
-	loadstack db 'Setting Up Stack...',13,10,0
-	loaddir db 'Loading root directory...',13,10,0
+	loadmem db 'Setting Up Memory Allocater...',0
+	loadmulti db 'Setting Up Multi-Threading...',0
+	loadintsmsg db 'Loading IDT...',0
+	loadshell db 'Spawning Shell Task...',0
         dot db '.',0
 	voidat db 13,10,'Void at ',0
-	ips db '1m instructions in ',0
-	ipsticks db ' ticks',0
 	help db 'help',0
-        header db ' ____',13,10,'| 00_|_ DreckigOS',13,10,'| 0| 0 | v0.006 Alpha',13,10,'|__|___| 2011-12 Sean Haas',13,10,0
+        header db ' ____',13,10,'| 00_|_ DreckigOS',13,10,'| 0| 0 | v0.007 Alpha',13,10,'|__|___| 2011-14 Sean Haas',13,10,0
         prompt db '?>',0
         error db 'Error!',13,10,0
         reboot db 'reboot',0
@@ -304,12 +327,16 @@ ret
 	list db 'list',0
 	catch db 'catch',0
 	regs db 'regs',0
-	file db 'file',0
+	lo db 'lo',0
+	hist db 'hist',0
+	crypt db 'crypt',0
 	log db 'log',0
+	rpc db 'rpc',0
 	lang db 'lang',0
-	ws db 'ws',0
 	langprmpt db 'LANG>',0
 	quit db 'quit',0
+	hash db 'hash',0
+	userchar db 'user',0
 	time db 'time',0
         info db 'info',0
         off db 'off',0
@@ -321,8 +348,10 @@ ret
 	bsodmsg db 13,10,13,10,'          Look what you`ve done :-(',13,10,'          Bang on the keyboard multiple times to walk away',0
 	task db 'task',0
 	swap db 'swap',0
+	killchar db 'kill',0
 	dte db 'dte',0
 	mem db 'mem',0
+	bf db 'bf',0
 	term db 'term',0
 	relist db 'relist',0
 	color db 'color',0
@@ -333,30 +362,34 @@ ret
 	shellpid db 0,0
 	pidbuff db 0,0
 	starttime db 0,0
-	gui db 0
 	page dw 0
 	iscrash db 0
 	doterm db 0,0
 	locked db 0,0
 	colors db 02,0,0,0
-        buffer times 128 db 0
+        user db '0',0,0
+	buffer times 128 db 0
+	sc0 db 0
 
-%INCLUDE "lang.asm"
+%INCLUDE "usr.asm"
 %INCLUDE "task.asm"
 %INCLUDE "memc.asm"	
-%INCLUDE "file.asm"
-%INCLUDE "dte.asm"
 %INCLUDE "term.asm"
+%INCLUDE "hash.asm"
 %INCLUDE "bFS.asm"
 %INCLUDE "int.asm"
+unsecure:
 %INCLUDE "shell.asm"
+%INCLUDE "dte.asm"
+%INCLUDE "lang.asm"
+%INCLUDE "crypt.asm"
+%INCLUDE "vm.asm"
+%INCLUDE "bf.asm"
 
 print:			;Print string
 	pusha
 	cmp byte[doterm],1
 	je .doterm
-	cmp byte[gui],1
-	je .guiprint
 	mov ah,0Eh	;IN - si, string to print
 	mov bl,2
 .repeat
@@ -367,11 +400,13 @@ print:			;Print string
         jmp .repeat
 .doterm
 	call serialprint
-	jmp .done
-.guiprint
-	call guiprint
 .done
 	popa
+ret
+
+getinput:
+	call print
+	call input
 ret
 
 dotdot:
@@ -387,6 +422,17 @@ dotdot:
         jmp .loop
 .done
         ret
+
+printok:
+	pusha
+	call getcurs
+	mov dl,45
+	call movecurs
+	mov si,.ok
+	call print
+	popa
+ret
+	.ok db 'Ok!',13,10,0
 
 input:			;Take keyboard input
         ;cmp byte[doterm],1
@@ -411,8 +457,6 @@ input:			;Take keyboard input
 
         stosb
         inc cl
-	cmp byte[gui],1
-	je .gui
         jmp .loop
 .backspace
 	cmp cl,0
@@ -431,28 +475,14 @@ input:			;Take keyboard input
 	mov al,08h
 	int 10h
 	jmp .loop
-.gui
-	pusha
-	call getcurs
-	cmp dl,31
-	je .wrap
-	cmp dh,23
-	je .scroll
-	popa
-	jmp .loop
-.wrap
-	popa
-	call wrapshell
-	jmp .loop
-.scroll
-	popa
-	call scrollshell
-	jmp .loop
 .esc
 	cmp byte[locked],1
 	je .loop
 	call printret
-	call main
+	call killque
+	mov ax,shell
+	call schedule
+	jmp main
 	jmp .done
 .doterm
 	call serialinput
@@ -465,26 +495,23 @@ input:			;Take keyboard input
         int 0x10
         mov al,0x0A
         int 0x10
+	call sanitycheck
 ret
 
 printret:
 	pusha
-	cmp byte[gui],1
-	je .gui
+	call getcurs
+	cmp dl,75
+	jge .side
 	mov si,return
 	call print
 	jmp .done
-.gui
-	call guiprintret
+.side
+	mov dl,70
+	add dh,1
+	call movecurs
 .done
 	popa
-ret
-
-guiprintret:
-	call getcurs
-	add dh,1
-	mov dl,byte[guiprint.x]
-	call movecurs
 ret
 
 waitkey:		;Wait for key press
@@ -519,11 +546,9 @@ compare:		;Compare two strings
 .done
         popa
         stc
-	ret
+ret
 
 clear:			;Clear screen
-	cmp byte[gui],1
-	je .gui
 	pusha
         mov dx,0
         pusha
@@ -541,8 +566,6 @@ clear:			;Clear screen
         int 10h
         popa
 	jmp .done
-.gui
-	call guiclear
 .done
 ret
 
@@ -670,36 +693,10 @@ tostring:
 ret
         .t times 7 db 0
 
-memdump:
-	mov si,.bott
-	call print
-	mov di,buffer
-	call input
-	
-	mov si,buffer
-	mov di,.void
-	call compare
-	jc .dumpvoid
-
-	mov si,buffer
-	call toint
-	mov si,ax
-	call getdump
-	jmp .done
-.dumpvoid
-	mov si,void
-	call getdump
-.done
-	call printret
-ret
-	.bott db 'Bottom>',0
-	.void db 'void',0
-
 catchfire:
 	mov si,.hcfprmpt
-	call print
 	mov di,buffer
-	call input
+	call getinput
 	mov si,buffer
 	call toint
 	mov bx,ax
@@ -756,7 +753,7 @@ printhelp:
 ret
 	.hlp1 db 'help - print help message',13,10,0
 	.hlp2 db 'stack - print stack',13,10,0
-	.hlp3 db 'file - file manager',13,10,0
+	.hlp3 db 'user - user manager',13,10,0
 	.hlp4 db 'dte - text editor',13,10,0
 	.hlp5 db 'regs - print registers',13,10,0
 	.hlp6 db 'mem - display memory in kbs',13,10,0
@@ -764,7 +761,7 @@ ret
 	.hlp8 db 'clear - clear screen',13,10,0
 	.hlp9 db 'ps - list running tasks',13,10,0
 	.hlp12 db 'reboot - reboot computer',13,10,0
-	.hlp13 db 'log - lock computer',13,10,0
+	.hlp13 db 'lo - log out',13,10,0
 
 getuptime:
 	call getpit
@@ -859,8 +856,6 @@ getdump:
         je .done
         int 10h
         add bx,1
-        cmp cx,5
-        je .done
         jmp .repeat
 .done	
 ret
@@ -1057,13 +1052,25 @@ taskman:
 	call gotask
 ret	
 
+locmd:
+	call killque
+	mov ax,[histpage]
+	call freebig
+	mov byte[crypton],0
+	mov ax,'0'
+	mov [user],ax
+	call login
+	mov ax,shell
+	call schedule
+	jmp main
+ret
+
 logit:
 	mov byte[locked],1
 	
 	mov si,.pass
-	call print
 	mov di,.secret
-	call input
+	call getinput
 
 	mov ah,05
 	mov al,3
@@ -1071,9 +1078,8 @@ logit:
 	call clear
 .loop
 	mov si,.pass
-	call print
 	mov di,buffer
-	call input
+	call getinput
 	mov si,.secret
 	mov di,buffer
 	call compare
@@ -1095,21 +1101,31 @@ err:
 	popa
 ret
 
+sanitycheck:
+	cmp byte[sc0],0
+	jne .err
+	cmp byte[sc1],0
+	jne .err
+	jmp .done
+.err
+	call scfail
+.done
+ret
+
+scfail:
+	mov byte[colors],23
+	call clear
+	mov si,.msg
+	call print
+	call waitkey
+	call reboot1
+ret
+	.msg db 'A sanity chack has failed most likely due to a buffer overflow',13,10,'Press any key to reboot...',13,10,0
+
 bsod:
 	pusha
-	mov ah,05h
-	mov al,0
-	int 10h
-	mov dx,0
-	mov bh,0
-	mov ah,2h
-	int 10h
-	mov cx,2000
-	mov bh,0
-	mov bl,17h
-	mov al,20h
-	mov ah,9h
-	int 10h
+	mov byte[colors],17h
+	call clear
 
 	mov si,bsodmsg
 	call print
@@ -1119,6 +1135,7 @@ bsod:
 	call printret
 	call printret
 	call printstack
+	call tasklist
 	xor cx,cx
 	xor ax,ax
 .loop
@@ -1130,9 +1147,19 @@ bsod:
 	jge .done
 	jmp .loop
 .done
+	call killque
+
+	cli
+	mov ax,0
+	mov ss,ax
+	mov sp,0FFFFh
+	sti
+
+	mov ax,shell
+	call schedule
 	call main
-	int 19h
 ret
+	.wl db '          Writting crash log...',0
 
 reboot1:
 	mov si,rebootmsg
@@ -1155,6 +1182,5 @@ cpuoff:
 kernend db 13,10,'Dreckig Kernel End',13,10,0
 void db 0,0,'Void Start',0,0
 times 5 db '0'
-%INCLUDE "files.asm"
 filesend
 %INCLUDE "splash.asm"

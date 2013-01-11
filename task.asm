@@ -1,14 +1,8 @@
 gotask:	
 	.start
 	mov si,.name
-	call print
 	mov di,.file
-	call input
-
-	mov di,.file
-	mov si,textedit.list
-	call compare
-	jc .listfiles
+	call getinput
 
 	mov di,.file
 	call findfile
@@ -103,6 +97,7 @@ ret
 tasklist:
 	pusha
 	mov bx,taskque
+	mov byte[.any],1
 .loop
 	cmp word[bx],00
 	jne .task
@@ -111,6 +106,7 @@ tasklist:
 	jge .done
 	jmp .loop
 .task
+	mov byte[.any],0
 	push bx
 	mov ax,bx
 	sub ax,taskque
@@ -131,6 +127,7 @@ tasklist:
 .done
 	popa
 ret
+	.any db 0,0
 
 findclearque:
 	mov bx,taskque
@@ -152,6 +149,16 @@ kill:			;IN - ax, pid
 	popa
 ret
 
+killcmd:
+	mov si,.pid
+	mov di,buffer
+	call getinput
+	mov si,buffer
+	call toint
+	call kill
+ret
+	.pid db 'PID>',0
+
 killque:		;Deschedule all tasks
 	pusha
 	mov si,taskque
@@ -166,15 +173,83 @@ killque:		;Deschedule all tasks
 ret
 
 schedule:			;IN - ax, ip of proccess, OUT - ax, pid
+	pusha
 	call findclearque
 	mov word[bx],ax
 	mov ax,bx
 	sub ax,taskque
+	mov [.pid],ax
+	mov [saveregs.base],ax
+	popa
+	call saveregs
+	mov ax,[.pid]
+ret
+	.pid db 0,0
+
+saveregs:
+	pusha
+	mov ax,[.base]
+	mov bx,16
+	mul bx
+	add ax,void + 4096
+	mov [.base],ax
+	popa
+	pusha
+	push di
+	mov di,[.base]
+	mov [di],ax
+	mov [di + 2],bx
+	mov [di + 4],cx
+	mov [di + 6],dx
+	mov [di + 8],si
+	mov si,di
+	pop di
+	mov [si + 10],di
+	popa
+ret
+	.base db 0,0
+
+pullregs:
+	pusha
+	mov ax,[.base]
+	mov bx,16
+	mul bx
+	add ax,void + 4096
+	mov [.base],ax
+	popa
+	mov di,[.base]
+	mov ax,[di]
+	mov bx,[di + 2]
+	mov cx,[di + 4]
+	mov dx,[di + 6]
+	mov si,[di + 8]
+	mov di,[di + 10]
+ret
+	.base db 0,0
+
+numtasks:
+	xor ax,ax
+	push bx
+	xor bx,bx
+.loop
+	cmp bx,32
+	jge .done
+	add bx,2
+	cmp word[taskque + bx],1
+	jle .task
+	jmp .loop
+.task
+	add ax,1
+	jmp .loop
+.done
+	call getregs
+	pop bx
 ret
 
 yield:
 	pusha
-	mov bx,word[currpid]
+	mov byte[.fullp],0
+	mov bx,[currpid]
 	add bx,2
 .loop
 	cmp word[bx],00
@@ -184,12 +259,19 @@ yield:
 	jge .full
 	jmp .loop
 .full
+	cmp byte[.fullp],1
+	je .done
 	mov bx,taskque
 	mov byte[.fullp],1
 	jmp .loop
 .run
 	mov byte[.fullp],0
 	mov word[currpid],bx
+	mov word[pullregs.base],bx
+	sub word[pullregs.base],taskque
+	push bx
+	call pullregs
+	pop bx
 	call word[bx]
 .done
 	popa
@@ -198,12 +280,39 @@ ret
 
 coopcall:
 	call schedule
-	mov word[.pid],ax
+	push ax
 	call yield
-	mov ax,word[.pid]
+	pop ax
 	call kill
 ret
-	.pid db 0,0,0
+
+cleartime:
+	pusha
+	mov ah,01h
+	xor cx,cx
+	xor dx,dx
+	int 1Ah
+	popa
+ret
+
+getsystime:
+	xor ax,ax
+	int 1Ah
+ret
+
+wintest:
+	call savecurs
+
+	mov dh,0
+	mov dl,70
+	call movecurs
+	call tasklist
+
+	call loadcurs
+	call yield
+ret
+	.msg db 'test!',0
 
 currpid db 0,0
 taskque times 32 db 0
+times 2 db 0
