@@ -333,3 +333,44 @@ printhashfile:
 	cmp byte[si],0
 	jne .typeloop
 ret
+
+inithcache:
+	call malocbig
+	mov [hashcache],ax
+	mov [cachepage],bx
+ret
+
+hashcache dw 0
+cachepage dw 0
+
+cachefile:
+	push si
+	mov si,[hashcache]
+	mov ax,3
+	call malocsmall
+	pop si
+	push si
+	push bx
+	call gethash
+	pop bx
+	mov [bx],ax
+	push bx
+	call malocbig
+	pop bx
+	add bx,2
+	mov [bx],ax
+	call getregs
+	pop si
+	mov bx,ax
+	call gethashfile
+ret
+
+testcache:
+	mov si,.test
+	call cachefile
+	mov bx,[hashcache]
+	mov si,[bx + 2]
+	call getregs
+	call print
+ret
+	.test db 'test',0

@@ -49,6 +49,11 @@ Init:
 	call loadints
 	call printok
 
+	mov si,loadcache
+	call print
+	call inithcache
+	call printok
+
 	mov si,loadshell
 	call print
 	mov ax,shell
@@ -80,6 +85,8 @@ Init:
 	mov si,ax
 	call print
 	call printret
+
+	call testcache
 
 	call login
 main:			;Main command loop
@@ -313,6 +320,7 @@ ret
 	loadmem db 'Setting Up Memory Allocater...',0
 	loadmulti db 'Setting Up Multi-Threading...',0
 	loadintsmsg db 'Loading IDT...',0
+	loadcache db 'Building hash cache...',0
 	loadshell db 'Spawning Shell Task...',0
         dot db '.',0
 	voidat db 13,10,'Void at ',0

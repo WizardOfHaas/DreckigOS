@@ -303,7 +303,7 @@ langcommand:
 
 	mov di,bx
 	call getthread
-	call schedule
+	call coopcall
 	.sysok
 	cmp ax,'fl'
 	je .syserr

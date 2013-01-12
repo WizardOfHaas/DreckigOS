@@ -48,7 +48,7 @@ compbf:
 	mov di,void
 .loop
 	mov bx,[si]
-	cmp byte[si],0
+	cmp word[si],0
 	je .done
 	push si
 	call bf2mvm
