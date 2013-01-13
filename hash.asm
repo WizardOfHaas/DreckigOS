@@ -114,6 +114,9 @@ putfiletimed:
 ret
 
 gethashfile:
+	call gethashfiledisk
+ret
+
 	push bx
 	push si
 	call findcache
@@ -125,9 +128,9 @@ gethashfile:
 	pop si
 	call cachefile
 .move
-	pop di
+	pop bx
+	mov di,bx
 	mov si,ax
-	mov ax,1024
 	call memcpy
 ret
 
@@ -393,8 +396,8 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	jge .not
 	cmp [si],ax
 	je .found
-	add si,2
-	add cx,2
+	add si,4
+	add cx,4
 	jmp .loop
 .found
 	mov ax,[si + 2]
@@ -403,3 +406,15 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	mov ax,'nf'
 .done
 ret
+
+testcache:
+	mov si,.test
+	call cachefile
+	call getregs
+	mov si,.test
+	call findcache		;###Breaks here
+	call getregs
+	mov si,ax
+	call print
+ret
+	.test db 'test'

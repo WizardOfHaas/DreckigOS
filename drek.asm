@@ -86,6 +86,8 @@ Init:
 	call print
 	call printret
 
+	call testcache
+
 	call login
 main:			;Main command loop
 	call yield
