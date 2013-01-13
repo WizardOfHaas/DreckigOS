@@ -114,6 +114,24 @@ putfiletimed:
 ret
 
 gethashfile:
+	push bx
+	push si
+	call findcache
+	cmp ax,'nf'
+	je .get
+	pop si
+	jmp .move
+.get
+	pop si
+	call cachefile
+.move
+	pop di
+	mov si,ax
+	mov ax,1024
+	call memcpy
+ret
+
+gethashfiledisk:
 	call resetfloppy
 	push bx
 	mov bx,[user]
@@ -343,7 +361,7 @@ ret
 hashcache dw 0
 cachepage dw 0
 
-cachefile:
+cachefile:				;OUT - AX,location
 	push si
 	mov si,[hashcache]
 	mov ax,3
@@ -359,18 +377,29 @@ cachefile:
 	pop bx
 	add bx,2
 	mov [bx],ax
-	call getregs
 	pop si
 	mov bx,ax
-	call gethashfile
+	push ax
+	call gethashfiledisk
+	pop ax
 ret
 
-testcache:
-	mov si,.test
-	call cachefile
-	mov bx,[hashcache]
-	mov si,[bx + 2]
-	call getregs
-	call print
+findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
+	call gethash
+	mov si,[hashcache]
+	xor cx,cx
+.loop
+	cmp cx,1024
+	jge .not
+	cmp [si],ax
+	je .found
+	add si,2
+	add cx,2
+	jmp .loop
+.found
+	mov ax,[si + 2]
+	jmp .done
+.not
+	mov ax,'nf'
+.done
 ret
-	.test db 'test',0
