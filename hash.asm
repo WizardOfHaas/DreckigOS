@@ -395,7 +395,7 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	cmp cx,1024
 	jge .not
 	cmp [si],ax
-	je .found
+	je .done
 	add si,4
 	add cx,4
 	jmp .loop
@@ -411,10 +411,14 @@ testcache:
 	mov si,.test
 	call cachefile
 	call getregs
+	mov si,ax
+	call print
 	mov si,.test
 	call findcache		;###Breaks here
 	call getregs
+	mov ax,[si]
 	mov si,ax
+	call getregs
 	call print
 ret
 	.test db 'test'
