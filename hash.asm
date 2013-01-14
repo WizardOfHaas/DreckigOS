@@ -404,3 +404,23 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	mov ax,'nf'
 .done
 ret
+
+writecache:
+	mov si,[hashcache]
+.loop
+	cmp si,'00'
+	je .done
+	pusha
+	mov ax,[si]
+	mov bx,[si + 2]
+	popa
+	add si,4
+	jmp .loop
+.done
+ret
+
+clearcache:
+	mov si,[cachepage]
+	call freebig
+	call inithcache
+ret
