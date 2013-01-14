@@ -382,9 +382,9 @@ cachefile:				;OUT - AX,location
 	mov [bx],ax
 	pop si
 	mov bx,ax
-	push ax
+	pusha
 	call gethashfiledisk
-	pop ax
+	popa
 ret
 
 findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
@@ -392,10 +392,11 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	mov si,[hashcache]
 	xor cx,cx
 .loop
+	call getregs
 	cmp cx,1024
 	jge .not
 	cmp [si],ax
-	je .done
+	je .found
 	add si,4
 	add cx,4
 	jmp .loop
@@ -410,15 +411,9 @@ ret
 testcache:
 	mov si,.test
 	call cachefile
-	call getregs
-	mov si,ax
-	call print
 	mov si,.test
-	call findcache		;###Breaks here
-	call getregs
-	mov ax,[si]
+	call findcache
 	mov si,ax
-	call getregs
 	call print
 ret
-	.test db 'test'
+	.test db 'test',0
