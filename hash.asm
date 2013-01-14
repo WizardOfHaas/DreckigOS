@@ -114,9 +114,6 @@ putfiletimed:
 ret
 
 gethashfile:
-	call gethashfiledisk
-ret
-
 	push bx
 	push si
 	call findcache
@@ -131,6 +128,7 @@ ret
 	pop bx
 	mov di,bx
 	mov si,ax
+	mov ax,512
 	call memcpy
 ret
 
@@ -392,7 +390,6 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	mov si,[hashcache]
 	xor cx,cx
 .loop
-	call getregs
 	cmp cx,1024
 	jge .not
 	cmp [si],ax
@@ -407,13 +404,3 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	mov ax,'nf'
 .done
 ret
-
-testcache:
-	mov si,.test
-	call cachefile
-	mov si,.test
-	call findcache
-	mov si,ax
-	call print
-ret
-	.test db 'test',0
