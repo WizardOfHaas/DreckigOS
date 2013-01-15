@@ -205,6 +205,10 @@ getthread:		;Turns command into memory location
 	call compare
 	jc .histcmd
 
+	mov si,unmount
+	call compare
+	jc .unmountcmd
+
 	mov si,rpc
 	call compare
 	jc .rpccmd
@@ -292,6 +296,9 @@ getthread:		;Turns command into memory location
 .histcmd
 	mov ax,showhist
 	jmp .done
+.unmountcmd
+	mov ax,unmountcmd
+	jmp .done
 .rpccmd
 	mov ax,rpccmd
 .done
@@ -341,6 +348,7 @@ ret
 	lang db 'lang',0
 	langprmpt db 'LANG>',0
 	quit db 'quit',0
+	unmount db 'unmount',0
 	hash db 'hash',0
 	userchar db 'user',0
 	time db 'time',0

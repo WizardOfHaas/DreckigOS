@@ -191,6 +191,25 @@ gethashfiledisk:
 ret
 
 puthashfile:
+	push bx
+	push si
+	call findcache
+	cmp ax,'nf'
+	je .get
+	pop si
+	jmp .move
+.get
+	pop si
+	call cachefile
+.move
+	pop bx
+	mov di,bx
+	mov si,ax
+	mov ax,512
+	call memcpy
+ret
+
+puthashfiledisk:
 	pusha
 	cmp byte[crypton],0
 	je .clear
@@ -423,4 +442,9 @@ clearcache:
 	mov si,[cachepage]
 	call freebig
 	call inithcache
+ret
+
+unmountcmd:
+	call writecache
+	call clearcache
 ret
