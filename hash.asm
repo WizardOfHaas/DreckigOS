@@ -358,9 +358,9 @@ ret
 	.void db 'void',0
 
 printhashfile:
-	mov bx,void + 4096
+	mov bx,void
 	call gethashfile
-	mov si,void + 4096
+	mov si,void
 .typeloop
 	call print
 	call printret
