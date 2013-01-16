@@ -186,12 +186,18 @@ schedule:			;IN - ax, ip of proccess, OUT - ax, pid
 ret
 	.pid db 0,0
 
+initstatestore:
+	call malocbig
+	mov [statestore],ax
+	call malocbig
+ret
+
 saveregs:
 	pusha
 	mov ax,[.base]
 	mov bx,16
 	mul bx
-	add ax,void + 4096
+	add ax,[statestore]
 	mov [.base],ax
 	popa
 	pusha
@@ -214,7 +220,7 @@ pullregs:
 	mov ax,[.base]
 	mov bx,16
 	mul bx
-	add ax,void + 4096
+	add ax,[statestore]
 	mov [.base],ax
 	popa
 	mov di,[.base]

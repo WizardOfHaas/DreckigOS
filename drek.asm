@@ -42,6 +42,7 @@ Init:
 	mov word[currpid],taskque
 	mov ax,0
 	call multi
+	call initstatestore
 	call printok
 
 	mov si,loadintsmsg
@@ -373,6 +374,7 @@ ret
 	tmp db 'tmp',0
 	return db '',13,10,0
         press db 13,10,'Press any key to continue...',13,10,0
+	statestore dw 0
 	shellpid db 0,0
 	pidbuff db 0,0
 	starttime db 0,0
