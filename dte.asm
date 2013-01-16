@@ -6,7 +6,7 @@ textedit:
 
 	mov si,.filename
 	call isfileempty
-	jc .type
+	jc .starttype
 	
 	mov si,filesend
 	mov dx,filesend + 1024
@@ -36,8 +36,9 @@ textedit:
 	pop bx
 	mov byte[bx],0
 	jmp .loop
+.starttype
 .type
-	mov si,void + 4096
+	mov si,void
 .typeloop
 	call print
 	call printret
@@ -60,7 +61,7 @@ textedit:
 	je .editdone
 	mov si,buffer
 	call toint
-	mov si,void + 4096
+	mov si,void
 	call getindex
 	push si
 	call print
@@ -73,7 +74,7 @@ textedit:
 	call copystring
 	jmp .edit
 .editdone
-	mov bx,void + 4096
+	mov bx,void
 	mov si,.filename
 	call puthashfile
 	jmp .end
