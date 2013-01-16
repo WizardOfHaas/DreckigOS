@@ -264,9 +264,9 @@ ret
 
 isfileempty:
 	pusha
-	mov bx,void + 4096
+	mov bx,void
 	call gethashfile
-	mov si,void + 4096
+	mov si,void
 .loop
 	cmp byte[si],0
 	jne .stuff
