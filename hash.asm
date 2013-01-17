@@ -195,16 +195,15 @@ puthashfile:
 	push si
 	call findcache
 	cmp ax,'nf'
-	je .get
+	je .cache
 	pop si
-	jmp .move
-.get
+.cache
 	pop si
 	call cachefile
 .move
 	pop bx
-	mov di,bx
-	mov si,ax
+	mov di,ax
+	mov si,bx
 	mov ax,512
 	call memcpy
 ret
