@@ -197,6 +197,7 @@ puthashfile:
 	cmp ax,'nf'
 	je .cache
 	pop si
+	jmp .move
 .cache
 	pop si
 	call cachefile
@@ -205,6 +206,7 @@ puthashfile:
 	mov di,ax
 	mov si,bx
 	mov ax,512
+	call getregs
 	call memcpy
 ret
 
