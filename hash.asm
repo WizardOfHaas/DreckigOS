@@ -205,9 +205,9 @@ puthashfile:
 	pop bx
 	mov di,ax
 	mov si,bx
-	mov ax,512
-	call getregs
-	call memcpy
+	mov ax,si
+	add ax,512
+	call movemem
 ret
 
 puthashfiledisk:
@@ -428,11 +428,12 @@ ret
 writecache:
 	mov si,[hashcache]
 .loop
-	cmp si,'00'
+	cmp word[si],'00'
 	je .done
 	pusha
 	mov ax,[si]
 	mov bx,[si + 2]
+	call putsect
 	popa
 	add si,4
 	jmp .loop
