@@ -9,15 +9,10 @@ ret
 	.p db 'file>',0
 
 runbffile:
-	call malocbig
-	push bx
-	mov bx,ax
-	push bx
+	mov bx,void + 1024
 	call gethashfile
-	pop si
+	mov si,void + 1024
 	call runbf
-	pop ax
-	call freebig
 ret
 
 runbf:
