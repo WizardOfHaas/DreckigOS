@@ -132,12 +132,38 @@ gethashfile:
 	call memcpy
 ret
 
+digestname:
+	pusha
+.loop
+	cmp byte[si],0
+	je .done
+	cmp byte[si],':'
+	je .dig
+	add si,1
+	jmp .loop
+.dig
+	mov byte[si],0
+	push si
+	call getuserdata
+	pop si
+	push ax
+	mov ax,si
+	call length
+	add si,ax
+	pop ax
+	mov byte[di],al
+.done
+	popa
+ret
+	.tmp dw 0
+
 gethashfiledisk:
 	call resetfloppy
 	push bx
 	mov bx,[user]
 	cmp bx,'0'
 	jne .unpriv
+	call digestname
 	.ok
 	call gethash
 	call l2hts
