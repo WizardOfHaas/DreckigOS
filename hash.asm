@@ -134,26 +134,29 @@ ret
 
 digestname:
 	pusha
+	mov [.tmp],si
+	mov di,si
 .loop
-	cmp byte[si],0
+	cmp byte[di],0
 	je .done
-	cmp byte[si],':'
+	cmp byte[di],':'
 	je .dig
-	add si,1
+	add di,1
 	jmp .loop
 .dig
-	mov byte[si],0
-	push si
+	mov byte[di],0
+	call print
+	push di
 	call getuserdata
-	pop si
-	push ax
-	mov ax,si
-	call length
-	add si,ax
-	pop ax
+	pop di
+	call getregs
 	mov byte[di],al
+	mov si,di
+	call print
+	mov [.tmp],di
 .done
 	popa
+	mov si,[.tmp]
 ret
 	.tmp dw 0
 
