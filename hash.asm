@@ -145,14 +145,11 @@ digestname:
 	jmp .loop
 .dig
 	mov byte[di],0
-	call print
 	push di
+	mov di,si
 	call getuserdata
 	pop di
-	call getregs
 	mov byte[di],al
-	mov si,di
-	call print
 	mov [.tmp],di
 .done
 	popa
