@@ -115,6 +115,11 @@ ret
 
 gethashfile:
 	push bx
+	mov cx,[user]
+	cmp cx,'0'
+	jne .unpriv
+	call digestname
+	.unpriv
 	push si
 	call findcache
 	cmp ax,'nf'
@@ -163,7 +168,6 @@ gethashfiledisk:
 	mov bx,[user]
 	cmp bx,'0'
 	jne .unpriv
-	call digestname
 	.ok
 	call gethash
 	call l2hts
@@ -218,6 +222,11 @@ ret
 
 puthashfile:
 	push bx
+	mov cx,[user]
+	cmp cx,'0'
+	jne .unpriv
+	call digestname
+	.unpriv
 	push si
 	call findcache
 	cmp ax,'nf'

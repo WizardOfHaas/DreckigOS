@@ -1072,6 +1072,7 @@ locmd:
 	call killque
 	mov ax,[histpage]
 	call freebig
+	call writecache
 	call clearcache
 	mov byte[crypton],0
 	mov ax,'0'
