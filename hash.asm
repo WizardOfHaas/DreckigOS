@@ -139,7 +139,6 @@ ret
 
 digestname:
 	pusha
-	mov [.tmp],si
 	mov di,si
 .loop
 	cmp byte[di],0
@@ -151,16 +150,18 @@ digestname:
 .dig
 	mov byte[di],0
 	push di
+	push si
 	mov di,si
 	call getuserdata
+	pop si
 	pop di
 	mov byte[di],al
-	mov [.tmp],di
+	
+	xchg si,di
+	call copystring
 .done
 	popa
-	mov si,[.tmp]
 ret
-	.tmp dw 0
 
 gethashfiledisk:
 	call resetfloppy
@@ -226,14 +227,15 @@ puthashfile:
 	cmp cx,'0'
 	jne .unpriv
 	call digestname
+	call getregs
 	.unpriv
 	push si
 	call findcache
 	cmp ax,'nf'
-	je .cache
+	je .get
 	pop si
 	jmp .move
-.cache
+.get
 	pop si
 	call cachefile
 .move
