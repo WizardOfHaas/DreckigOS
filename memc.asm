@@ -136,6 +136,13 @@ freebig:		;In - AX,id of page to free
 	mov byte[si],0
 ret
 
+addr2page:		;IN - AX, addr, OUT - AX, page
+	sub ax,void + 6144
+	mov bx,1024
+	div bx
+	call getregs
+ret
+
 genmemtable:
 	mov bx,void + 5120
 	mov ax,void + 6144

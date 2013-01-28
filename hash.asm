@@ -232,11 +232,13 @@ puthashfile:
 	call findcache
 	cmp ax,'nf'
 	je .get
+	mov byte[si + 4],1
 	pop si
 	jmp .move
 .get
 	pop si
 	call cachefile
+	mov byte[si + 4],1
 .move
 	pop bx
 	mov di,ax
@@ -421,8 +423,10 @@ cachepage dw 0
 cachefile:				;OUT - AX,location
 	push si
 	mov si,[hashcache]
-	mov ax,3
+	mov ax,4
 	call malocsmall
+	mov [.tmp],bx
+	mov byte[bx + 4],0
 	pop si
 	push si
 	push bx
@@ -455,9 +459,11 @@ cachefile:				;OUT - AX,location
 	mov si,buffer
 	jmp .ok
 .done
+	mov si,[.tmp]
 ret
+	.tmp dw 0
 
-findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
+findcache:			;IN - SI,name of file OUT - AX,location, else 'nf', SI,entry
 	call gethash
 	mov si,[hashcache]
 	xor cx,cx
@@ -466,8 +472,8 @@ findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
 	jge .not
 	cmp [si],ax
 	je .found
-	add si,4
-	add cx,4
+	add si,5
+	add cx,5
 	jmp .loop
 .found
 	mov ax,[si + 2]
@@ -483,9 +489,21 @@ writecache:
 	cmp word[si],'00'
 	je .done
 	pusha
+	cmp byte[si + 4],0
+	je .nvm		;########### Step thru this part
 	mov ax,[si]
 	mov bx,[si + 2]
+	push bx
 	call putsect
+	pop ax
+	call addr2page
+	call freebig
+	mov byte[si],0
+	mov byte[si + 1],0
+	mov byte[si + 2],0
+	mov byte[si + 3],0
+	mov byte[si + 4],0
+	.nvm
 	popa
 	add si,4
 	jmp .loop
@@ -493,7 +511,7 @@ writecache:
 ret
 
 clearcache:
-	mov si,[cachepage]
+	mov ax,[cachepage]
 	call freebig
 	call inithcache
 ret
