@@ -227,7 +227,6 @@ puthashfile:
 	cmp cx,'0'
 	jne .unpriv
 	call digestname
-	call getregs
 	.unpriv
 	push si
 	call findcache
@@ -427,6 +426,10 @@ cachefile:				;OUT - AX,location
 	pop si
 	push si
 	push bx
+	mov dx,[user]
+	cmp dx,'0'
+	jne .unpriv
+	.ok
 	call gethash
 	pop bx
 	mov [bx],ax
@@ -440,6 +443,18 @@ cachefile:				;OUT - AX,location
 	pusha
 	call gethashfiledisk
 	popa
+	jmp .done
+.unpriv
+	push si
+	mov si,user
+	mov di,buffer
+	call copystring
+	pop si
+	mov di,buffer
+	call stringappend
+	mov si,buffer
+	jmp .ok
+.done
 ret
 
 findcache:			;IN - SI,name of file OUT - AX,location, else 'nf'
