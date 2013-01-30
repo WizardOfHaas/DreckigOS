@@ -490,22 +490,23 @@ writecache:
 	je .done
 	pusha
 	cmp byte[si + 4],0
-	je .nvm		;########### Step thru this part
+	je .nvm
 	mov ax,[si]
 	mov bx,[si + 2]
 	push bx
 	call putsect
 	pop ax
 	call addr2page
-	call freebig
-	mov byte[si],0
-	mov byte[si + 1],0
-	mov byte[si + 2],0
-	mov byte[si + 3],0
-	mov byte[si + 4],0
+	call getregs
+	;call freebig
+	;mov byte[si],'0'
+	;mov byte[si + 1],'0'
+	;mov byte[si + 2],'0'
+	;mov byte[si + 3],'0'
+	;mov byte[si + 4],'0'
 	.nvm
 	popa
-	add si,4
+	add si,5
 	jmp .loop
 .done
 ret
