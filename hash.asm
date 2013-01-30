@@ -498,12 +498,12 @@ writecache:
 	pop ax
 	call addr2page
 	call getregs
-	;call freebig
-	;mov byte[si],'0'
-	;mov byte[si + 1],'0'
-	;mov byte[si + 2],'0'
-	;mov byte[si + 3],'0'
-	;mov byte[si + 4],'0'
+	call freebig
+	mov byte[si],0
+	mov byte[si + 1],0
+	mov byte[si + 2],0
+	mov byte[si + 3],0
+	mov byte[si + 4],0
 	.nvm
 	popa
 	add si,5
