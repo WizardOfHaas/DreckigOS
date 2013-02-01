@@ -136,6 +136,18 @@ freebig:		;In - AX,id of page to free
 	mov byte[si],0
 ret
 
+getused:
+	mov si,void + 5120
+.loop
+	cmp word[si],0
+	je .done
+	add si,1
+	jmp .loop
+.done
+	sub si,void + 5120
+	mov ax,si
+ret
+
 addr2page:		;IN - AX, addr, OUT - AX, page
 	sub ax,void + 6144
 	mov bx,1024

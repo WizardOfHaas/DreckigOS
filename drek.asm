@@ -370,7 +370,7 @@ ret
 	term db 'term',0
 	relist db 'relist',0
 	color db 'color',0
-	kbs db 'kb',13,10,0 
+	kbs db 'kb available',13,10,0 
 	tmp db 'tmp',0
 	return db '',13,10,0
         press db 13,10,'Press any key to continue...',13,10,0
@@ -878,7 +878,6 @@ ret
 
 getmem:
 	pusha
-	call printret
 	mov al,18h
 	out 70h,al
 	in al,71h
@@ -890,10 +889,19 @@ getmem:
 	call tostring
 	mov si,ax
 	call print
-	mov si,kbs
+	mov si,.open
 	call print
 	popa
+
+	call getused
+	call tostring
+	mov si,ax
+	call print
+	mov si,.used
+	call print
 ret
+	.open db ' kbs available',13,10,0
+	.used db ' kbs used',13,10,0
 
 getips:
 	cli
