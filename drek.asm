@@ -209,6 +209,10 @@ getthread:		;Turns command into memory location
 	mov si,unmount
 	call compare
 	jc .unmountcmd
+	
+	mov si,chr
+	call compare
+	jc .chrcmd
 
 	mov si,rpc
 	call compare
@@ -300,6 +304,9 @@ getthread:		;Turns command into memory location
 .unmountcmd
 	mov ax,unmountcmd
 	jmp .done
+.chrcmd
+	mov ax,changeroot
+	jmp .done
 .rpccmd
 	mov ax,rpccmd
 .done
@@ -342,6 +349,7 @@ ret
 	catch db 'catch',0
 	regs db 'regs',0
 	lo db 'lo',0
+	chr db 'chr',0
 	hist db 'hist',0
 	crypt db 'crypt',0
 	log db 'log',0

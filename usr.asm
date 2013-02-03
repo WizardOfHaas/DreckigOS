@@ -256,7 +256,7 @@ changeroot:
 
 	mov di,buffer
 	call getuserdata
-	call unmount
+	call unmountcmd
 	mov [root],ax
 ret
 	.prmpt db 'New root>',0
