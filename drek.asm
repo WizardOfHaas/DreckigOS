@@ -1094,6 +1094,7 @@ locmd:
 	mov byte[crypton],0
 	mov ax,'0'
 	mov [user],ax
+	mov [root],ax
 	call login
 	mov ax,shell
 	call schedule

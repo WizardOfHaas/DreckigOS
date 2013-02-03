@@ -260,3 +260,12 @@ changeroot:
 	mov [root],ax
 ret
 	.prmpt db 'New root>',0
+
+sudocmd:
+	push si
+	mov si,login.pass
+	mov di,buffer
+	call getinput
+		
+	pop si
+ret

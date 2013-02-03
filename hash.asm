@@ -518,6 +518,8 @@ clearcache:
 ret
 
 unmountcmd:
+	pusha
 	call writecache
 	call clearcache
+	popa
 ret

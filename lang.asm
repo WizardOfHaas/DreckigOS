@@ -94,6 +94,10 @@ langcommand:
 	call compare
 	jc .bfcmd
 
+	mov di,.sudochar
+	call compare
+	jc .sudocmd
+
 	mov di,.cmdbuff
 	call getlastchar
 	cmp byte[di],'>'
@@ -610,6 +614,10 @@ langcommand:
 	mov si,bx
 	call runbffile
 	jmp .done
+.sudocmd
+	mov si,bx
+	call sudocmd
+	jmp .done
 .err
 	call err
 	mov ax,'er'
@@ -634,6 +642,7 @@ ret
 	.tagchar db 'tag',0
 	.loopchar db 'loop',0
 	.newchar db 'new',0
+	.sudochar db 'asr',0
 	.loadchar db 'load',0
 	.savechar db 'save',0
 	.cmdbuff times 64 db 0
