@@ -263,9 +263,35 @@ ret
 
 sudocmd:
 	push si
+	mov di,usercmd.root
+	call getuserdata
+	push si
 	mov si,login.pass
-	mov di,buffer
+	mov di,void
 	call getinput
-		
+	call hidepasswd
+	mov si,void
+	call gethash
+	call tostring
 	pop si
+	mov di,ax
+	call compare
+	pop di
+	jc .run
+	jmp .done
+.run
+	mov ax,[user]
+	mov bx,[root]
+	push ax
+	push bx
+	mov ax,'0'
+	mov bx,ax
+	mov [user],ax
+	mov [root],bx
+	call commands
+	pop bx
+	pop ax
+	mov [user],ax
+	mov [root],bx
+.done
 ret
