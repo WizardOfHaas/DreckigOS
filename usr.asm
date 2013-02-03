@@ -168,6 +168,7 @@ login:
 	jmp login
 .done
 	mov [user],ax
+	mov [root],ax
 	mov si,void
 	mov dx,void + 512
 	call memclear
@@ -247,3 +248,15 @@ ret
 	.init db 'init',0
 	.root db 'root',0
 	.kill db 'kill',0
+
+changeroot:
+	mov si,.prmpt
+	mov di,buffer
+	call getinput
+
+	mov di,buffer
+	call getuserdata
+	call unmount
+	mov [root],ax
+ret
+	.prmpt db 'New root>',0

@@ -384,6 +384,7 @@ ret
 	locked db 0,0
 	colors db 02,0,0,0
         user db '0',0,0
+	root db '0',0,0
 	buffer times 128 db 0
 	sc0 db 0
 

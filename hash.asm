@@ -115,7 +115,7 @@ ret
 
 gethashfile:
 	push bx
-	mov cx,[user]
+	mov cx,[root]
 	cmp cx,'0'
 	jne .unpriv
 	call digestname
@@ -166,7 +166,7 @@ ret
 gethashfiledisk:
 	call resetfloppy
 	push bx
-	mov bx,[user]
+	mov bx,[root]
 	cmp bx,'0'
 	jne .unpriv
 	.ok
@@ -191,7 +191,7 @@ gethashfiledisk:
 	jmp .retry
 .unpriv
 	push si
-	mov si,user
+	mov si,root
 	mov di,buffer
 	call copystring
 	pop si
@@ -223,7 +223,7 @@ ret
 
 puthashfile:
 	push bx
-	mov cx,[user]
+	mov cx,[root]
 	cmp cx,'0'
 	jne .unpriv
 	call digestname
@@ -261,7 +261,7 @@ puthashfiledisk:
 	popa
 	pusha
 	push bx
-	mov bx,[user]
+	mov bx,[root]
 	cmp bx,'0'
 	jne .unpriv
 	.ok
@@ -286,7 +286,7 @@ puthashfiledisk:
 	jmp .retry
 .unpriv
 	push si
-	mov si,user
+	mov si,root
 	mov di,buffer
 	call copystring
 	pop si
@@ -430,7 +430,7 @@ cachefile:				;OUT - AX,location
 	pop si
 	push si
 	push bx
-	mov dx,[user]
+	mov dx,[root]
 	cmp dx,'0'
 	jne .unpriv
 	.ok
@@ -450,7 +450,7 @@ cachefile:				;OUT - AX,location
 	jmp .done
 .unpriv
 	push si
-	mov si,user
+	mov si,root
 	mov di,buffer
 	call copystring
 	pop si

@@ -145,7 +145,12 @@ getused:
 	jmp .loop
 .done
 	sub si,void + 5120
-	mov ax,si
+	push si
+	mov ax,void + 5120
+	mov bx,1024
+	div ax
+	pop si
+	add ax,si
 ret
 
 addr2page:		;IN - AX, addr, OUT - AX, page
