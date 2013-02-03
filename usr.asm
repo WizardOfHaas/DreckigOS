@@ -75,11 +75,15 @@ killuser:		;DI - user to kill
 ret
 
 getuserdata:
+	mov ax,[root]
 	pusha
+	mov ax,'0'
+	mov [root],ax
 	mov si,userchar
 	mov bx,void
 	call gethashfile
 	popa
+	mov [root],ax
 	call parseuserdata
 ret
 
@@ -293,5 +297,6 @@ sudocmd:
 	pop ax
 	mov [user],ax
 	mov [root],bx
+	call unmountcmd
 .done
 ret

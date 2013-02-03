@@ -14,6 +14,7 @@
 ;	copyright Sean Haas 2011-14
 ORG 100h
 jmp short Init
+db 'For Jamie'
 sc1 db 0
 Init:
 	cli
@@ -796,6 +797,13 @@ getuptime:
 	call tostring
 	mov si,ax
 	call print
+ret
+
+getdtime:
+	mov ah,4
+	int 1Ah
+
+	
 ret
 
 gettime:
