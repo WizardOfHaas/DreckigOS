@@ -261,7 +261,7 @@ getthread:		;Turns command into memory location
 	mov ax,catchfire
 	jmp .done
 .datecmd
-	mov ax,getdate
+	mov ax,getdtime
 	jmp .done
 .stackcmd
 	call printstack
@@ -789,6 +789,14 @@ ret
 	.hlp12 db 'reboot - reboot computer',13,10,0
 	.hlp13 db 'lo - log out',13,10,0
 
+printint:
+	pusha
+	call tostring
+	mov si,ax
+	call print
+	popa
+ret
+
 getuptime:
 	call getpit
 	mov bx,[starttime]
@@ -800,85 +808,29 @@ getuptime:
 ret
 
 getdtime:
-	mov ah,4
-	int 1Ah
-
-	
+	;call getdate
+	call gettime
+	call printret
 ret
 
 gettime:
-	mov ax,0
-	mov al,04h		;Hour
-	out 70h,al
-	in al,71h
-	mov ah,0
-	call bcdtoint
-	call tostring
-	mov si,ax
-	call print
-	mov si,.space
-	call print
-	
-	mov ax,0
-	mov al,02h		;Minute
-	out 70h,al
-	in al,71h
-	mov ah,0
-	call bcdtoint
-	call tostring
-	mov si,ax
-	call print
-	mov si,.space
-	call print
-
-	mov ax,0		;Second
-	mov al,00
-	out 70h,al
-	in al,71h
-	mov ah,0
-	call bcdtoint
-	call tostring
-	mov si,ax
-	call print
-
-	call printret
+	xor ax,ax
+	int 1Ah
+	mov ax,cx
+	call printint
+	call printdot
+	mov ax,dx
+	call printint
 ret
-	.space db ':',0
 
 getdate:
-	mov ax,0		;Day
-	mov al,7h
-	out 70h,al
-	in al,71h
+	mov ah,04h
+	int 1Ah
+	mov al,dl
 	call bcdtoint
-	call tostring
-	mov si,ax
-	call print
-	mov si,.space
-	call print
-		
-	mov ax,0		;Month
-	mov al,8h
-	out 70h,al
-	in al,71h
-	call bcdtoint
-	call tostring
-	mov si,ax
-	call print
-	mov si,.space
-	call print
-
-	mov ax,0		;Year
-	mov al,9h
-	out 70h,al
-	in al,71h
-	call bcdtoint
-	call tostring
-	mov si,ax
-	call print
-	call printret
+	call printint
+	call printdot
 ret
-	.space db ',',0
 
 getdump:
 	mov bx,0
