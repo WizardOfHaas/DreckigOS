@@ -808,7 +808,7 @@ getuptime:
 ret
 
 getdtime:
-	;call getdate
+	call getdate
 	call gettime
 	call printret
 ret
@@ -824,10 +824,10 @@ gettime:
 ret
 
 getdate:
+	xor ax,ax
 	mov ah,04h
 	int 1Ah
-	mov al,dl
-	call bcdtoint
+	mov ax,dx
 	call printint
 	call printdot
 ret
