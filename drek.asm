@@ -808,29 +808,33 @@ getuptime:
 ret
 
 getdtime:
-	call getdate
 	call gettime
+	mov ax,[gettime.time]
+	call printint
+	mov ax,[gettime.time + 2]
+	call printint
 	call printret
 ret
 
 gettime:
+	pusha
 	xor ax,ax
 	int 1Ah
-	mov ax,cx
-	call printint
-	call printdot
-	mov ax,dx
-	call printint
+	mov [.time],cx
+	mov [.time + 2],dx
+	popa
 ret
+	.time times 5 db 0
 
 getdate:
-	xor ax,ax
+	pusha
 	mov ah,04h
 	int 1Ah
-	mov ax,dx
-	call printint
-	call printdot
+	mov [.date],cx
+	mov [.date + 2],dx
+	popa
 ret
+	.date times 5 db 0
 
 getdump:
 	mov bx,0
