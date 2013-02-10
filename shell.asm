@@ -220,37 +220,65 @@ gencmdhashes:
 	mov [di],ax
 	add di,2
 	add si,6
+	mov ax,[si]
+	mov [di],ax
+	add di,2
+	add si,2
 	cmp byte[si],'*'
 	je .done
 .done
+	mov byte[di],'*'
 ret
 	.mem dw 0
 
 cmdstrings:
 help db		'help',0,0
-date db 	'date',0,0
+		dw printhelp
+date db 	'date',0,0 
+		dw getdtime
 regs db 	'regs',0,0
+		dw getregs
 lo db		'lo',0,0,0,0
+		dw locmd
 hist db 	'hist',0,0
+		dw showhist
 crypt db 	'crypt',0
+		dw cryptcmd
 log db 		'log',0,0,0
+		dw logit
 rpc db 		'rpc',0,0,0
+		dw rpccmd
 quit db 	'quit',0,0
+		dw locmd
 unmount db 	'unm',0,0,0
+		dw unmountcmd
 hash db 	'hash',0,0
+		dw userhash
 userchar db 	'user',0,0
-time db 	'time',0,0
+		dw usercmd
 info db 	'info',0,0
+		dw sysinfo
 off db 		'off',0,0,0
+		dw cpuoff
 cls db 		'clear',0,0
+		dw clear
 ps db 		'ps',0,0,0,0
+		dw tasklist
 dump db 	'dump',0,0
+		dw memdump
 crash db 	'crash',0
+		dw Init
 task db 	'task',0,0
+		dw taskman
 swap db 	'swap',0,0
+		dw swapit
 killchar db 	'kill',0,0
+		dw killcmd
 dte db 		'dte',0,0,0
+		dw textedit
 mem db 		'mem',0,0,0
+		dw getmem
 bf db 		'bf',0,0,0,0
+		dw bfcmd
 term db 	'term',0,0
 db '*'

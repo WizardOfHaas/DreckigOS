@@ -315,8 +315,45 @@ getthread:		;Turns command into memory location
 .done
 ret
 
+getthreadtabled:
+	mov si,cmdstrings
+.loop
+	call compare
+	jc .found
+	add si,8
+	cmp byte[si],'*'
+	je .err
+	jmp .loop
+.found
+	mov ax,[si + 6]
+	jmp .done
+.err
+	mov ax,'fl'
+.done
+ret
+
+getthreadhashed:
+	mov si,di
+	call gethash
+	mov si,[gencmdhashes.mem]
+.loop
+	call getregs
+	cmp [si],ax
+	je .cmdfound
+	add si,4
+	cmp byte[si],'*'
+	je .err
+	jmp .loop
+.cmdfound
+	mov ax,[si + 2]
+	jmp .done
+.err
+	mov ax,'fl'
+.done
+ret
+
 commands:
-	call getthread
+	call getthreadtabled
 	cmp ax,'fl'
 	je .err
 	mov bx,[user]
