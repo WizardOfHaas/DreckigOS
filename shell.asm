@@ -227,7 +227,7 @@ gencmdhashes:
 	cmp byte[si],'*'
 	je .done
 .done
-	mov byte[di],'*'
+	mov word[di],'**'
 ret
 	.mem dw 0
 

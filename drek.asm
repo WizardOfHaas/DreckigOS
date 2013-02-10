@@ -328,6 +328,7 @@ getthreadtabled:
 	mov ax,[si + 6]
 	jmp .done
 .err
+	call getregs
 	mov ax,'fl'
 .done
 ret
@@ -341,7 +342,7 @@ getthreadhashed:
 	cmp [si],ax
 	je .cmdfound
 	add si,4
-	cmp byte[si],'*'
+	cmp word[si],'**'
 	je .err
 	jmp .loop
 .cmdfound
