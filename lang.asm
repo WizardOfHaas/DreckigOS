@@ -1,3 +1,6 @@
+varmem dw 0
+varpage dw 0
+
 langcommand:
 .commands
 	pusha
