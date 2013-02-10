@@ -778,12 +778,12 @@ printhelp:
 	call print
 ret
 	.hlp1 db 'help - print help message',13,10,0
-	.hlp2 db 'stack - print stack',13,10,0
+	.hlp2 db 'bf - run bf code',13,10,0
 	.hlp3 db 'user - user manager',13,10,0
 	.hlp4 db 'dte - text editor',13,10,0
 	.hlp5 db 'regs - print registers',13,10,0
-	.hlp6 db 'mem - display memory in kbs',13,10,0
-	.hlp7 db 'swap - switch between tasks',13,10,0
+	.hlp6 db 'chroot - change root directory',13,10,0
+	.hlp7 db 'crypt - cryptography manager',13,10,0
 	.hlp8 db 'clear - clear screen',13,10,0
 	.hlp9 db 'ps - list running tasks',13,10,0
 	.hlp12 db 'reboot - reboot computer',13,10,0
