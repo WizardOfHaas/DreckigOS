@@ -68,6 +68,8 @@ Init:
 	mov ax,0
 	call porton
 
+	call gencmdhashes
+
         mov si,loading
         call print
 
@@ -338,45 +340,19 @@ ret
 	loadshell db 'Spawning Shell Task...',0
         dot db '.',0
 	voidat db 13,10,'Void at ',0
-	help db 'help',0
         header db ' ____',13,10,'| 00_|_ DreckigOS',13,10,'| 0| 0 | v0.007 Alpha',13,10,'|__|___| 2011-14 Sean Haas',13,10,0
         prompt db '?>',0
         error db 'Error!',13,10,0
         reboot db 'reboot',0
 	rebootmsg db 'Rebooting...',0
 	stack db 'stack',0
-	date db 'date',0
 	list db 'list',0
 	catch db 'catch',0
-	regs db 'regs',0
-	lo db 'lo',0
 	chr db 'chr',0
-	hist db 'hist',0
-	crypt db 'crypt',0
-	log db 'log',0
-	rpc db 'rpc',0
 	lang db 'lang',0
 	langprmpt db 'LANG>',0
-	quit db 'quit',0
-	unmount db 'unmount',0
-	hash db 'hash',0
-	userchar db 'user',0
-	time db 'time',0
-        info db 'info',0
-        off db 'off',0
         offmsg db 13,10,'Computer Halted...',0
-        cls db 'clear',0
-	ps db 'ps',0
-        dump db 'dump',0
-	crash db 'crash',0
 	bsodmsg db 13,10,13,10,'          Look what you`ve done :-(',13,10,'          Bang on the keyboard multiple times to walk away',0
-	task db 'task',0
-	swap db 'swap',0
-	killchar db 'kill',0
-	dte db 'dte',0
-	mem db 'mem',0
-	bf db 'bf',0
-	term db 'term',0
 	relist db 'relist',0
 	color db 'color',0
 	kbs db 'kb available',13,10,0 
@@ -1052,8 +1028,6 @@ ret
 locmd:
 	call killque
 	mov ax,[histpage]
-	call freebig
-	mov ax,[varpage]
 	call freebig
 	call writecache
 	call clearcache

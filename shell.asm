@@ -209,3 +209,48 @@ showhist:
 	jne .typeloop
 .done
 ret
+
+gencmdhashes:
+	call malocbig
+	mov [.mem],ax
+	mov si,cmdstrings
+	mov di,[.mem]
+.loop
+	call gethash
+	mov [di],ax
+	add di,2
+	add si,6
+	cmp byte[si],'*'
+	je .done
+.done
+ret
+	.mem dw 0
+
+cmdstrings:
+help db		'help',0,0
+date db 	'date',0,0
+regs db 	'regs',0,0
+lo db		'lo',0,0,0,0
+hist db 	'hist',0,0
+crypt db 	'crypt',0
+log db 		'log',0,0,0
+rpc db 		'rpc',0,0,0
+quit db 	'quit',0,0
+unmount db 	'unm',0,0,0
+hash db 	'hash',0,0
+userchar db 	'user',0,0
+time db 	'time',0,0
+info db 	'info',0,0
+off db 		'off',0,0,0
+cls db 		'clear',0,0
+ps db 		'ps',0,0,0,0
+dump db 	'dump',0,0
+crash db 	'crash',0
+task db 	'task',0,0
+swap db 	'swap',0,0
+killchar db 	'kill',0,0
+dte db 		'dte',0,0,0
+mem db 		'mem',0,0,0
+bf db 		'bf',0,0,0,0
+term db 	'term',0,0
+db '*'

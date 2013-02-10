@@ -179,10 +179,6 @@ login:
 	mov di,.run
 	call runlangfile
 	mov byte[locked],0
-
-	call malocbig
-	mov [varmem],ax
-	mov [varpage],bx
 ret
 	.usr db 'UserName>',0
 	.pass db 'Password>',0
