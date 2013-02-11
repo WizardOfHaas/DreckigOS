@@ -381,7 +381,6 @@ ret
         header db ' ____',13,10,'| 00_|_ DreckigOS',13,10,'| 0| 0 | v0.007 Alpha',13,10,'|__|___| 2011-14 Sean Haas',13,10,0
         prompt db '?>',0
         error db 'Error!',13,10,0
-        reboot db 'reboot',0
 	rebootmsg db 'Rebooting...',0
 	stack db 'stack',0
 	list db 'list',0

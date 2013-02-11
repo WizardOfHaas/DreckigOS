@@ -282,4 +282,6 @@ ps db 		'ps',0,0,0,0
 		dw tasklist
 term db 	'term',0,0
 		dw swapterm
+reboot db 	're',0,0,0,0
+		dw reboot1
 dw '**'
