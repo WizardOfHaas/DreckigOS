@@ -224,7 +224,7 @@ gencmdhashes:
 	mov [di],ax
 	add di,2
 	add si,2
-	cmp byte[si],'*'
+	cmp word[si],'**'
 	je .done
 .done
 	mov word[di],'**'
@@ -260,10 +260,8 @@ info db 	'info',0,0
 		dw sysinfo
 off db 		'off',0,0,0
 		dw cpuoff
-cls db 		'clear',0,0
+cls db 		'clear',0
 		dw clear
-ps db 		'ps',0,0,0,0
-		dw tasklist
 dump db 	'dump',0,0
 		dw memdump
 crash db 	'crash',0
@@ -280,5 +278,8 @@ mem db 		'mem',0,0,0
 		dw getmem
 bf db 		'bf',0,0,0,0
 		dw bfcmd
+ps db 		'ps',0,0,0,0
+		dw tasklist
 term db 	'term',0,0
-db '*'
+		dw swapterm
+dw '**'

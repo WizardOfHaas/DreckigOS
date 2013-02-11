@@ -321,7 +321,7 @@ getthreadtabled:
 	call compare
 	jc .found
 	add si,8
-	cmp byte[si],'*'
+	cmp word[si],'**'
 	je .err
 	jmp .loop
 .found
