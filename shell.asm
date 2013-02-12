@@ -216,16 +216,19 @@ gencmdhashes:
 	mov si,cmdstrings
 	mov di,[.mem]
 .loop
-	call gethash
-	mov [di],ax
-	add di,2
-	add si,6
-	mov ax,[si]
-	mov [di],ax
-	add di,2
-	add si,2
-	cmp word[si],'**'
+	cmp byte[si],'*'
 	je .done
+	push si
+	push di
+	call gethash
+	pop di
+	pop si
+	mov [di],ax
+	mov ax,[si + 6]
+	mov [di + 2],ax
+	add di,4
+	add si,8
+	jmp .loop
 .done
 	mov word[di],'**'
 ret
