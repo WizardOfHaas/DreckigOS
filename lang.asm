@@ -1,6 +1,3 @@
-varmem dw 0
-varpage dw 0
-
 langcommand:
 .commands
 	pusha
@@ -310,10 +307,10 @@ langcommand:
 
 	mov di,bx
 	call getthread
-	call coopcall
 	.sysok
 	cmp ax,'fl'
 	je .syserr
+	call coopcall
 	jmp .done
 .sysvar
 	popa
@@ -321,7 +318,6 @@ langcommand:
 	call commands
 	jmp .sysok
 .syserr
-	call err
 	jmp .done
 .go
 	pusha

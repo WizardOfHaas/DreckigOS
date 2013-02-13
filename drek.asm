@@ -872,10 +872,10 @@ ret
 	.secret times 8 db 0
 
 err:
-	pusha
+	push si
 	mov si,error
 	call print
-	popa
+	pop si
 ret
 
 sanitycheck:
