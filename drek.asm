@@ -531,40 +531,19 @@ ret
 	.vinfo times 13 db 0
 
 printhelp:
-	mov si,.hlp1
-	call print
-	mov si,.hlp2
-	call print
-	mov si,.hlp3
-	call print
-	mov si,.hlp4
-	call print
-	mov si,.hlp5
-	call print
-	mov si,.hlp6
-	call print
-	mov si,.hlp7
-	call print
-	mov si,.hlp8
-	call print
-	mov si,.hlp9
-	call print
-	mov si,.hlp12
-	call print
-	mov si,.hlp13
+	mov si,helpstring
 	call print
 ret
-	.hlp1 db 'help - print help message',13,10,0
-	.hlp2 db 'bf - run bf code',13,10,0
-	.hlp3 db 'user - user manager',13,10,0
-	.hlp4 db 'dte - text editor',13,10,0
-	.hlp5 db 'regs - print registers',13,10,0
-	.hlp6 db 'chroot - change root directory',13,10,0
-	.hlp7 db 'crypt - cryptography manager',13,10,0
-	.hlp8 db 'clear - clear screen',13,10,0
-	.hlp9 db 'ps - list running tasks',13,10,0
-	.hlp12 db 'reboot - reboot computer',13,10,0
-	.hlp13 db 'lo - log out',13,10,0
+
+helpstring:
+db 'lo - log out, same as quit',13,10
+db 'hist - show recent commands entered',13,10
+db 'crypt - cryptography manager',13,10
+db 'log - lock the computer',13,10
+db 'user - manager users',13,10
+db 'unm - unmount disk',13,10
+db 'clear - clear screen',13,10
+db '',13,10
 
 printint:
 	pusha
