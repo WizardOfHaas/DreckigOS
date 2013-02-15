@@ -543,7 +543,14 @@ db 'log - lock the computer',13,10
 db 'user - manager users',13,10
 db 'unm - unmount disk',13,10
 db 'clear - clear screen',13,10
-db '',13,10
+db 'dump - show contents of RAM',13,10
+db 'kill - end a proccess',13,10
+db 'dte - a text editor',13,10
+db 'mem - display memory information',13,10
+db 'bf - run bf* program',13,10
+db 'ps - list proccesses',13,10
+db 're - reboot',13,10
+db 0
 
 printint:
 	pusha
