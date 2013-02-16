@@ -269,8 +269,6 @@ dump db 	'dump',0,0
 		dw memdump
 crash db 	'crash',0
 		dw Init
-task db 	'task',0,0
-		dw taskman
 swap db 	'swap',0,0
 		dw swapit
 killchar db 	'kill',0,0

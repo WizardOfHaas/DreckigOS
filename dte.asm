@@ -122,34 +122,6 @@ printfilell:
 .done
 ret
 
-tagprintfile:
-	mov [.nextfile],di
-
-	call findfile
-	cmp ax,0
-	je .done
-	call printfile
-	mov di,[.nextfile]
-.loop
-	call findtag
-	cmp ax,0
-	je .done
-	mov di,[.nextfile]
-	
-	call readtag
-	mov di,si
-	mov [.nextfile],di
-	call findfile
-	cmp ax,0
-	je .done
-	call printfile
-	mov di,[.nextfile]
-	jmp .loop
-.done
-	call printret
-ret
-	.nextfile db 0,0
-
 fixsize:
 	pusha
 	mov [.src],si

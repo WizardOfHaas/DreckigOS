@@ -56,60 +56,6 @@ alocallvm:
 .done
 ret
 
-runrom:
-	push di
-	call killque
-	call killvfs
-	call loadrootdir
-	pop di
-	mov bx,void + 2048
-	call vfs2disk
-	cmp ax,'er'
-	je .err
-	mov ax,16
-	call maloc
-	call zeroram
-	mov si,void + 2048
-	mov di,bx
-	mov dx,0
-	call runcpu
-	call free
-	mov bx,void + 2048
-	mov ax,void + 2048 + 512
-	call free
-	call printret
-	jmp .done
-.err
-	mov ax,'fl'
-.done
-	call killque
-	mov ax,shell
-	call schedule
-ret
-
-cmdlinevm:
-	mov di,bx
-	mov bx,void + 2048
-	mov [nodemaster.romlist],bx
-	call vfs2disk
-	cmp cx,0
-	je .done
-	mov bx,void + 2560
-	mov [nodemaster.romlist + 2],bx
-	mov di,cx
-	call vfs2disk
-	cmp dx,0
-	je .done
-	mov bx,void + 3072
-	mov [nodemaster.romlist + 4],bx
-	mov di,dx
-	call vfs2disk
-.done
-	call killque
-	mov byte[doterm],1
-	call startvm.run
-ret
-
 startvm:	
 	call killque
 	
@@ -140,15 +86,13 @@ ret
 
 loadroms:
 	pusha
-	call getdirsec
-	call populatebfs
 	mov byte[.rom + 3],'A'
 	mov bx,void + 2048
 	mov di,.rom
 	xor si,si
 .loop
 	call getregs
-	call vfs2disk
+	call gethashfile
 	cmp ax,'er'
 	je .done
 	mov word[nodemaster.romlist + si],bx
@@ -159,7 +103,6 @@ loadroms:
 	add bx,512
 	jmp .loop
 .done
-	call killvfs
 	call printret
 	popa
 ret

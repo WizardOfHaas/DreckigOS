@@ -58,10 +58,6 @@ langcommand:
 	call compare
 	jc .varin
 
-	mov di,.freechar
-	call compare
-	jc .free
-
 	mov di,.filechar
 	call compare
 	jc .file
@@ -77,18 +73,6 @@ langcommand:
 	mov di,color
 	call compare
 	jc .colorcmd
-
-	mov di,.loopchar
-	call compare
-	jc .loop
-
-	mov di,.savechar
-	call compare
-	jc .save
-
-	mov di,.loadchar
-	call compare
-	jc .load
 
 	mov di,bf
 	call compare
@@ -106,7 +90,6 @@ langcommand:
 	mov ax,'er'
 	jmp .done	
 .end
-	jmp runlang.done
 	jmp .done
 .out
 	mov si,ax
@@ -504,10 +487,6 @@ langcommand:
 	pop di	
 
 	push di
-	call pullfile
-	pop di
-
-	push di
 	;Copy String to File
 	mov ax,1
 	call maloc
@@ -583,31 +562,11 @@ langcommand:
 	call memcpy
 	pop di
 	jmp .fileinok
-.free
-	call cleartmp
-	jmp .done
 .colorcmd
 	mov si,bx
 	call toint
 	mov byte[colors],al
 	call clear
-	jmp .done
-.loop
-	mov si,.var
-	mov di,bx
-	call compare
-	jc .done
-
-	call cleartmp
-	call cleanramdisk
-	;mov di,runlangfile.file
-	call runlangfile
-	jmp .done
-.save
-	call saveramdisk
-	jmp .done
-.load
-	call loadramdisk
 	jmp .done
 .bfcmd
 	mov si,bx
@@ -658,40 +617,6 @@ parse2ints:
 	mov bx,ax
 	pop ax
 ret
-
-runlang:
-	.start
-	mov si,.name
-	call print
-	mov di,.file
-	call input
-
-	mov di,.file
-	mov si,.list
-	call compare
-	jc .listfiles
-	
-	mov di,.file
-	call findfile
-	cmp ax,0
-	je .err
-	
-	mov di,.file
-	call runlangfile
-	jmp .done
-
-.listfiles
-	call filelist
-	jmp .start
-.err
-	call err
-	jmp .done
-.done
-	call cleartmp
-ret
-	.name db 'NAME>',0
-	.list db 'list',0
-	.file times 8 db 0
 
 runlangfile:
 	mov bx,void
@@ -772,4 +697,110 @@ cutend:
 	call getlastchar
 	mov byte[di],0
 	popa
+ret
+
+findfile:
+	push si
+	push di					;Find file and give location
+	mov si,di
+	mov bx,void
+	call gethashfile
+	cmp ax,'er'
+	jne .done
+.err
+	mov ax,0
+.done	
+	mov ax,void
+	mov bx,void + 512
+	pop di
+	pop si
+ret
+
+newtag:				;Make a tag, SI, name, DI, value
+	push di
+	push si
+	mov ax,1
+	call maloc
+	add bx,1
+	mov si,bx
+	mov cx,'&*'
+	mov [si],cx
+	pop si
+	add bx,2
+	mov di,bx
+	call copystring
+	mov ax,1
+	call maloc
+	mov si,bx
+	mov byte[si],0
+	pop di
+	xchg si,di
+	call copystring
+ret
+
+findtag:			;Find a tag, DI, name
+	mov si,void + 18
+	mov dx,si
+	add dx,1024
+.loop
+	cmp byte[si],'*'
+	je .tagp
+	add si,1
+	cmp si,dx
+	jge .nope
+	jmp .loop
+.tagp
+	add si,1
+	cmp byte[si],'&'
+	jne .loop
+	add si,1
+	cmp byte[si],'*'
+	add si,1
+	jmp .istag
+.istag
+	pusha
+	call compare
+	jc .found
+	popa
+	jmp .loop
+.nope
+	mov ax,0
+	jmp .done
+.found
+	popa
+.done
+ret
+
+readtag:			;Read tag data, DI, name, out SI, value
+	call findtag
+	mov ax,si
+	call length
+	add si,ax
+	add si,1		
+ret
+
+killtag:			;Kill tag, DI, name
+	push di
+	call findtag
+	pop di
+	sub si,3
+	push si
+	
+	call readtag
+	mov ax,si
+	call length
+	add si,ax
+	mov dx,si
+
+	pusha
+	mov di,si
+	call markfull
+	popa
+	pop si
+
+	mov ax,dx
+	add ax,1024
+	mov di,si
+	mov si,dx
+	call movemem
 ret

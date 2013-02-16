@@ -523,3 +523,35 @@ unmountcmd:
 	call clearcache
 	popa
 ret
+
+
+l2hts:
+	push bx
+	push ax
+	mov bx, ax			
+	mov dx, 0			
+	div word [.SecsPerTrack]	
+	add dl, 01h			
+	mov cl, dl			
+	mov ax, bx
+	mov dx, 0			
+	div word [.SecsPerTrack]	
+	mov dx, 0
+	div word [.Sides]
+	mov dh, dl			
+	mov ch, al			
+	pop ax
+	pop bx
+	mov dl, byte 0	
+ret
+	.Sides dw 2
+	.SecsPerTrack dw 18
+
+resetfloppy:
+	pusha
+	mov ax, 0
+	mov dl, 0
+	stc
+	int 13h
+	popa	
+ret

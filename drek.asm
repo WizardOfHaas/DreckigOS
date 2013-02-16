@@ -178,7 +178,7 @@ ret
 %INCLUDE "memc.asm"	
 %INCLUDE "term.asm"
 %INCLUDE "hash.asm"
-%INCLUDE "bFS.asm"
+;%INCLUDE "bFS.asm"
 %INCLUDE "int.asm"
 unsecure:
 %INCLUDE "shell.asm"
@@ -205,6 +205,14 @@ print:			;Print string
 .done
 	popa
 ret
+
+printcol:
+	pusha
+	mov si,.col
+	call print
+	popa
+ret
+	.col db '   ',0
 
 getinput:
 	call print
@@ -806,10 +814,6 @@ ret
 	.dx1 dw 0
 	.si1 dw 0
 	.di1 dw 0
-
-taskman:
-	call gotask
-ret	
 
 locmd:
 	call killque
