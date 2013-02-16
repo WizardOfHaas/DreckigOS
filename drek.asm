@@ -149,7 +149,6 @@ ret
 	stack db 'stack',0
 	list db 'list',0
 	catch db 'catch',0
-	chr db 'chr',0
 	lang db 'lang',0
 	langprmpt db 'LANG>',0
         offmsg db 13,10,'Computer Halted...',0

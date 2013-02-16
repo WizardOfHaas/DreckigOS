@@ -23,7 +23,7 @@ Native commands:
        These are initiated with a one word command, and if any other data is needed the user is prompted.
 Unprivleged: For everyone
        help  - terse help message
-       reboot - reboot, duh
+       re - reboot
        info - show some system info
        clear - clear screen
        log - super secure locking mechanism
@@ -40,6 +40,7 @@ Priveleged: For group 0
        kill - kill a proccess
        user - user control system
        hash - low level access to hashfs
+       chr - chroot, change root directory
 
 lang commands:
      These are run in the lang interpreter, usually more than one word long. I developed lang as a way to write simple scripts
@@ -50,6 +51,7 @@ Here is a quick list of more useful functions:
 	  file name > -- display file "name"
 	  run file -- runs lang file "file"
 	  # cmd -- runs "cmd" as a native command
+	  asr cmd -- run cmd as root
 
 Brainfuck!:
 	This is the fun part(or at least it was fun to write!). Either enter a piece of brainfuck code straight at the command
@@ -87,6 +89,9 @@ stored as a char. The init subcommand just writes a "user" file to disk with an 
        When you log in the script "run" is run. It is written in lang, and is in plaintext. When you add a new user you should
 write a quick run script for them so that is doesn't hit random junk and hang/crash. The usual group based access rescticions
 apply, such that group 1 runs "1run".
+       You can also access files in a specific user group by appending a username to the file name, such as:
+       	   sean:run
+       If sean is in user group 1 then this is the same as '1test'.
 
 
 ---Encryption---

@@ -287,4 +287,6 @@ term db 	'term',0,0
 		dw swapterm
 reboot db 	're',0,0,0,0
 		dw reboot1
+chr db 		'chr',0,0,0
+		dw changeroot
 dw '**'
