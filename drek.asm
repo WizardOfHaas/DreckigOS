@@ -90,6 +90,8 @@ Init:
 	call print
 	call printret
 
+	call ddbstest
+
 	call login
 main:			;Main command loop
 	call yield

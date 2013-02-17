@@ -1,5 +1,12 @@
-ddbscmd:
+ddbstest:
+	mov di,.file
+	mov si,.name
+	mov bx,.spec
+	call newtable
 ret
+	.spec db 2,'GID',0,4,'Passwd',0,10,'Name',0,0,0
+	.name db 'tb0',0
+	.file db 'db0',0
 
 newtable:			;DI - DB name, SI - Table Name, BX - Table specs
 	pusha
@@ -29,10 +36,14 @@ newtable:			;DI - DB name, SI - Table Name, BX - Table specs
 	call getfilesize
 	add ax,1
 	pop bx
-	sub ax,bx
 	mov si,bx
+	add ax,bx
+	push ax
 	mov di,[.end]
-	call memcpy
+	call getregs
+	call movemem
+	pop si
+	mov word[si],'**'
 ret
 	.mem dw 0
 	.end dw 0
