@@ -96,7 +96,25 @@ main:			;Main command loop
 	call sanitycheck
 jmp main
 
+
 getthread:
+	mov si,cmdstrings
+.loop
+	call compare
+	jc .found
+	add si,8
+	cmp byte[si],'*'
+	je .err
+	jmp .loop
+.found
+	mov ax,[si + 6]
+	jmp .done
+.err
+	mov ax,'fl'
+.done
+ret
+
+getthreadhashed:
 	mov si,di
 	call gethash
 	mov si,[gencmdhashes.mem]
@@ -818,6 +836,8 @@ ret
 locmd:
 	call killque
 	mov ax,[histpage]
+	call freebig
+	mov ax,[tagpage]
 	call freebig
 	call writecache
 	call clearcache

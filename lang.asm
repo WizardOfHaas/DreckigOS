@@ -720,7 +720,8 @@ newtag:				;Make a tag, SI, name, DI, value
 	push di
 	push si
 	mov ax,1
-	call maloc
+	mov si,[tagmem]
+	call malocsmall
 	add bx,1
 	mov si,bx
 	mov cx,'&*'
@@ -730,7 +731,8 @@ newtag:				;Make a tag, SI, name, DI, value
 	mov di,bx
 	call copystring
 	mov ax,1
-	call maloc
+	mov si,[tagmem]
+	call malocsmall
 	mov si,bx
 	mov byte[si],0
 	pop di
@@ -739,7 +741,7 @@ newtag:				;Make a tag, SI, name, DI, value
 ret
 
 findtag:			;Find a tag, DI, name
-	mov si,void + 18
+	mov si,[tagmem]
 	mov dx,si
 	add dx,1024
 .loop
@@ -803,4 +805,15 @@ killtag:			;Kill tag, DI, name
 	mov di,si
 	mov si,dx
 	call movemem
+ret
+
+tagpage dw 0
+tagmem dw 0
+
+inittags:
+	pusha
+	call malocbig
+	mov [tagmem],ax
+	mov [tagpage],bx
+	popa
 ret

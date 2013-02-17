@@ -176,6 +176,7 @@ login:
 	mov si,void
 	mov dx,void + 512
 	call memclear
+	call inittags
 	mov di,.run
 	call runlangfile
 	mov byte[locked],0
