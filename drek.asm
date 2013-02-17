@@ -205,6 +205,7 @@ unsecure:
 %INCLUDE "crypt.asm"
 %INCLUDE "vm.asm"
 %INCLUDE "bf.asm"
+%INCLUDE "ddbs.asm"
 
 print:			;Print string
 	pusha
