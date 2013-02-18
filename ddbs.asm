@@ -49,6 +49,10 @@ dbms:
 	mov si,.tname
 	mov di,buffer
 	call getinput
+
+	mov si,[.dbmem]
+	mov di,buffer
+	call desctb
 	jmp .loop
 .done
 	mov ax,[.dbmem]
@@ -112,7 +116,6 @@ ret
 
 showdb:			;SI - DB location
 	add si,1
-	call getregs
 .printloop
 	call print
 	call printret
@@ -127,6 +130,34 @@ showdb:			;SI - DB location
 	add si,3
 	jmp .printloop
 .done
+ret
+
+desctb:			;SI - DB, DI - table name
+	call findtablespec
+	mov ax,si
+	call length
+	add si,ax
+	add si,1
+.printloop
+	pusha
+	movzx ax,byte[si]
+	call tostring
+	mov si,ax
+	call print
+	call printdot
+	popa
+	add si,1
+	call print
+	call printcol
+	mov ax,si
+	call length
+	add si,ax
+	add si,1
+	cmp word[si],'**'
+	je .done
+	jmp .printloop
+.done
+	call printret
 ret
 
 findtablespec:		;SI - DB location, DI - Table name
@@ -145,4 +176,10 @@ findtablespec:		;SI - DB location, DI - Table name
 .err
 	mov si,0
 .done
+ret
+
+
+
+inserttable:
+	
 ret
