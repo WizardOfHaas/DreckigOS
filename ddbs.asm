@@ -178,8 +178,66 @@ findtablespec:		;SI - DB location, DI - Table name
 .done
 ret
 
+instablecmd:
+	mov si,dbms.tname
+	mov di,buffer
+	call getinput
 
-
-inserttable:
 	
+ret
+	.mem dw 0
+	.prmpt db 'val0>',0
+
+inserttable:		;SI - DB location, DI - table name, AX - val0, BX - val1...
+	pusha
+	call malocbig
+	mov [.mem],ax
+	mov bx,ax
+	mov si,di
+	call gethashfile
+	mov bx,[.mem]
+	mov [.end],bx
+	call getfilesize
+	mov [.end],ax
+	popa
+	call findtablespec
+	push ax
+	mov ax,si
+	call length
+	add si,ax
+	add si,1
+	mov [.spec],si
+	pop ax
+	call insstub
+	mov ax,bx
+	call insstub
+	mov ax,cx
+	call insstub
+	mov ax,dx
+	call insstub
+.done
+	mov ax,[.mem]
+	call addr2page
+	call freebig
+ret
+	.mem dw 0
+	.end dw 0
+	.spec dw 0
+
+insstub:
+	cmp ax,0
+	je .done
+	pusha
+	mov di,ax
+	movzx ax,byte[si]
+	mov si,[di]
+	mov di,[inserttable.end]
+	call memcpy
+	add [inserttable.end],ax
+	mov ax,[inserttable.spec]
+	call length
+	add ax,1
+	add [inserttable.spec],ax
+	popa
+.done
 ret
