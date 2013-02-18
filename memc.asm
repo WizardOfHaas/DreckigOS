@@ -198,18 +198,7 @@ ret
 
 memcpy:				;IN - si, source, di, destination, ax, length
 	pusha
-	add di,void + 2048
-	mov bx,si
-	add bx,ax
-	mov ax,bx
-	call movemem
-	popa
-	pusha
-	mov si,di
-	add si,void + 2048
-	mov bx,si
-	add bx,ax
-	mov ax,bx
+	add ax,si
 	call movemem
 .done
 	popa
