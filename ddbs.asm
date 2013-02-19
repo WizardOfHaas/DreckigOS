@@ -32,6 +32,10 @@ dbms:
 	mov si,.descchar
 	call compare
 	jc .desc
+
+	mov si,.inschar
+	call compare
+	jc .ins
 	jmp .loop
 .use
 	mov si,.fname
@@ -54,6 +58,9 @@ dbms:
 	mov di,buffer
 	call desctb
 	jmp .loop
+.ins
+	call instablecmd
+	jmp .loop
 .done
 	mov ax,[.dbmem]
 	call addr2page
@@ -61,6 +68,7 @@ dbms:
 ret
 	.usechar db 'use',0
 	.descchar db 'desc',0
+	.inschar db 'ins',0
 	.prmpt db 'ddbs>',0
 	.fname db 'file>',0
 	.tname db 'table>',0
@@ -183,12 +191,36 @@ instablecmd:
 	mov di,buffer
 	call getinput
 
-	
+	call malocbig
+	mov [.mem],ax
+	mov byte[.prmpt + 3],'0'
+	mov si,.prmpt
+	mov di,[.mem]
+	call getinput
+	add byte[.prmpt + 3],1
+	mov si,.prmpt
+	mov di,[.mem]
+	add di,128
+	call getinput
+	add byte[.prmpt + 3],1
+	mov di,[.mem]
+	add di,256
+	call getinput
+
+	mov si,dbms.dbmem
+	mov di,buffer
+	mov ax,[.mem]
+	mov bx,[.mem]
+	add bx,128
+	mov cx,[.mem]
+	add cx,256
+	call inserttable
 ret
 	.mem dw 0
 	.prmpt db 'val0>',0
 
 inserttable:		;SI - DB location, DI - table name, AX - val0, BX - val1...
+	push di
 	pusha
 	call malocbig
 	mov [.mem],ax
@@ -216,6 +248,9 @@ inserttable:		;SI - DB location, DI - table name, AX - val0, BX - val1...
 	mov ax,dx
 	call insstub
 .done
+	pop si
+	mov bx,ax
+	call puthashfile
 	mov ax,[.mem]
 	call addr2page
 	call freebig
