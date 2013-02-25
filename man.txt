@@ -1,0 +1,142 @@
+Dreckig OS
+v0.007.5
+
+User Manual
+
+Copywrite 2011-2014 Dr Sean Haas
+
+
+--The Basics--
+
+-User accounts-
+When Dreckig OS boots up it will promt you to log in. As far as Dreckig OS is concerned users come in two types, super-users
+(group id 0) and unprivleged users (every other gruid id). The default super-user account uses user name 'root' and the 
+password 'root'. Super-users have access to all files on the disk and more programs than other users. Unpriveleged users can 
+use the 'asr' command to run programms as root.
+	 
+-Files- 
+Each user group has their own home directory containing all there files. Users from one group cannot access other group's 
+files. Super-users can access any file on the disk. When you are a super user file paths are like this:
+       username:filename
+Where username is the name of the user and filename is the name of the file. Another useful feature of Dreckig OS is the crypt
+encryptio manager, with it you can encrypt entire file systems, see the command listing for details.
+
+--The Command Line--
+
+The command line in Dreckig OS is a mixture of native command, Lang commands, and Brainfuck code (yes, really). 
+Native commands are built into the kernel, it only takes one word, their name, to invoke them. Further input is given 
+interactively. Lang commands are, in simple terms, more than one word. They are more intended to serve as a job control and 
+simple UI language for scripting and the like. Brainfuck code can also be entered at the command line. This is mainly just as
+a demo of the MVM virtual machine architecture built into Dreckig OS, the code is compiled and run on multiple co-operatively
+multi-tasking virtual machines.
+
+--Command Listing--
+
+-help-	
+	Lists commands and a short synopsis of their purpose.
+-re-
+	Reboots the computer, really more of a soft-boot.
+-info-
+	Shows system version, copyright information and CPU type.
+-clear-
+	Clears the screen.
+-log-
+	Secure system locking mechanism. Once locked through log the computer is can only be unlocked by being unplugged or
+	entering the correct password. The password for log is only stored in memory while the system is locked. 
+	Additional prompts:
+		   PASS> 
+		   	 First time, enter the password you want to use.
+		   PASS>
+			 Second time, this means the system is locked. Enter the password you used to unlock it.
+-bf-
+	Run a file of Breinfuck code. 
+	Additional prompts:
+		   file>
+			Name of source code file.
+	bf is also a command in Lang.
+-hist-
+	Show the most recent commands entered.
+-lo-
+	Log out. Can also use the command quit to the same effect.
+-dte-
+	The Dreckig Text Editor.
+	Additional prompts:
+		   FILE>
+			Name of the file to edit. If the file does not exist it will be created.
+		   LINE>
+			Here either enter the line numebr in the file which you want to rewrite, or a command.
+			't' retypes the file, 'q' quits without saving, and 'w' writes the file and quits.
+-crypt-
+	Encryption system manager. Can be either turned off or turned on to allow for full disk encryption and stenography.
+	Additional prompts:
+		  crypt>
+			Enter crypt commands here, valid commands:
+			on - trun encryption layer for files on.
+			off - turn layer off.
+			init - initialize a CryptFS disk *WARNING* wipes all data.
+-dump-
+	Show contents of memory on screen. Only accessable by super users.
+	Additional prompts:
+		   Bottom> 
+		   	   Starting adress of memory to dump (in decimal).
+-regs-
+	Show contents of proccessor registers.
+-ps-
+	List proccesses, shows proccess ID and it's location in RAM. Only for super-users.
+-kill-
+	Kill a proccess. Only for super users.
+	Additional prompts:
+		   PID>
+			ID of proccess to kill.
+			It is illadvised to kill proccess 0, as this will render the system useless.	
+-user-
+	Manage user accounts. Only for super-users.
+	Additional prompts:
+		   USER>
+			Enter user commands here. Valid commands include:
+			      list - list all users, a hash of their password, and their user group ID.
+			      add - make a new user account. Prompts for:
+			      	  UserName>
+					Name for new user.
+				  Password>
+					Password for the new user.
+				  Group>
+					Group ID for new user.
+			      kill - Remove user account. Prompts for:
+			      	   UserName> 
+				   	Name of the unlucky user.
+			      init - Write default user file to disk with only root account.
+-hash-
+	Low level file manager for HashFS. Super-users only.
+	Additional prompts:
+		   hashfs>
+			Enter hash commsnds here. Valid commands:
+			      get - Read in a file. Prompts for:
+			      	  name>
+					File name.
+			      put - Write to a file on disk. Prompts for:
+			      	  name>
+					File name.
+				  >
+					Data to write to file.
+			      kill - De;ete file contents. Prompts for:
+			      	  name> 
+				   	 File name.
+-chr-
+	Change root directory to the home directory of another user. For super-users only.
+	Additional prompts:
+		   New root>
+		       User name of the owner of the home directory to switch to.
+-asr-
+	Run a command as root. Technically a Lang command. Available to all users.
+	Syntax:
+		asr cms
+		    Runs cmd as if you were a super-user.
+	Additional prompts:
+		Password>
+		    Enter the password for the user root here (defaults is 'root').
+
+--Lang commands--
+
+--Brainfuck--
+
