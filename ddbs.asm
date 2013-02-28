@@ -1,20 +1,22 @@
 ddbstest:
-	mov di,.file
-	mov si,.name
-	mov bx,.spec
-	call newtable
-
 	mov bx,void
 	mov si,.file
 	call gethashfile
-	mov bx,void
-	call showdb
+	mov si,void
+	mov di,.name
+	mov ax,.val0
+	mov bx,.val1
+	mov cx,.val2
+	call inserttable
 ret
-	.spec db 2,'GID',0,4,'Passwd',0,10,'Name',0,0,0
 	.name db 'tb0',0
 	.file db 'db0',0
+	.val0 db '01'
+	.val1 db '0123'
+	.val2 db 'a value!'
 
 dbms:
+	call ddbstest
 .loop
 	mov si,.prmpt
 	mov di,buffer
@@ -74,19 +76,13 @@ ret
 	.tname db 'table>',0
 	.dbmem dw 0
 
-newtable:			;DI - DB name, SI - Table Name, BX - Table specs
-	push di
+maketable:			;DI - db, SI - tb name, BX - tb spec
 	pusha
-	call malocbig
-	call getregs
-	mov [.mem],ax
-	mov bx,ax
-	mov si,di
-	call gethashfile
-	mov bx,[.mem]
+	mov [.mem],di
+	mov bx,di
 	call getfilesize
 	add ax,1
-	mov [.end],ax
+	mov[.end],ax
 	mov bx,[.mem]
 	add [.end],bx
 	popa
@@ -113,6 +109,24 @@ newtable:			;DI - DB name, SI - Table Name, BX - Table specs
 	add di,ax
 	mov word[di],'**'
 	pop si
+ret
+	.end dw 0
+	.mem dw 0
+
+newtable:			;DI - DB name, SI - Table Name, BX - Table specs
+	push di
+	pusha
+	call malocbig
+	call getregs
+	mov [.mem],ax
+	mov bx,ax
+	mov si,di
+	call gethashfile
+	popa
+
+	mov di,[.mem]
+	call maketable	
+
 	mov bx,[.mem]
 	call puthashfile
 	mov ax,[.mem]
@@ -249,7 +263,7 @@ inserttable:		;SI - DB location, DI - table name, AX - val0, BX - val1...
 	call insstub
 .done
 	pop si
-	mov bx,ax
+	mov bx,[.mem]
 	call puthashfile
 	mov ax,[.mem]
 	call addr2page
@@ -264,6 +278,7 @@ insstub:
 	je .done
 	pusha
 	mov di,ax
+	mov si,[inserttable.spec]
 	movzx ax,byte[si]
 	mov si,[di]
 	mov di,[inserttable.end]
