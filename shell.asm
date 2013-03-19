@@ -287,6 +287,4 @@ reboot db 	're',0,0,0,0
 		dw reboot1
 chr db 		'chr',0,0,0
 		dw changeroot
-ddbs		db 'ddbs',0,0
-		dw dbms
 dw '**'
