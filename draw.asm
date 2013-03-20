@@ -1,3 +1,82 @@
+guipage dw 0
+initgui:
+	call malocbig
+	mov [guipage],ax
+
+	xor ax,ax
+	mov al,13h
+	int 10h
+
+	mov ax,1123h
+	mov bl,02h
+	int 10h
+
+	mov al,5
+	mov ah,5
+	mov bl,100
+	mov bh,100
+	call newwin
+	call displaywin
+
+	mov al,105
+	mov ah,5
+	mov bl,205
+	mov bh,100
+	call newwin
+	call displaywin
+
+	mov al,5
+	mov ah,105
+	mov bl,205
+	mov bh,195
+	call newwin
+	call displaywin
+	call waitkey
+ret
+
+newwin:			;AL,x1, AH,y1, BL,x2, BH,y2
+	pusha
+	call malocbig
+	mov [.mem],ax
+	mov si,[guipage]
+	mov ax,1
+	call malocsmall
+	sub ax,1
+	mov [.entry],ax
+	popa
+	mov si,[.entry]
+	mov byte[si],al
+	mov byte[si + 1],ah
+	mov byte[si + 2],bl
+	mov byte[si + 3],bh
+	mov di,[.mem]
+	mov word[si + 4],di
+	mov ax,si
+	sub ax,[guipage]
+	mov bx,6
+	div bx
+ret			;AX,win ID, SI,win page
+	.mem dw 0
+	.entry dw 0
+
+getwindata:			;AX,win ID
+	mov bx,6
+	mul bx
+	add ax,[guipage]
+ret			;AX,pointer to window data entry
+
+displaywin:		;AX,win ID
+	pusha
+	call getwindata
+	mov bx,ax
+	movzx cx,byte[bx]
+	movzx dx,byte[bx + 1]
+	movzx si,byte[bx + 2]
+	movzx di,byte[bx + 3]
+	call drawwin
+	popa
+ret
+
 ;0xA0000
 plot:
 	pusha

@@ -90,6 +90,8 @@ Init:
 	call print
 	call printret
 
+	call initgui
+
 	call login
 main:			;Main command loop
 	call yield
