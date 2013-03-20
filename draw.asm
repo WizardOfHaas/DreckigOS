@@ -13,31 +13,21 @@ initgui:
 
 	mov al,5
 	mov ah,5
-	mov bl,100
-	mov bh,100
-	call newwin
-	call displaywin
-
-	mov al,105
-	mov ah,5
-	mov bl,205
-	mov bh,100
-	call newwin
-	call displaywin
-
-	mov al,5
-	mov ah,105
 	mov bl,205
 	mov bh,195
+	mov si,.msg
 	call newwin
 	call displaywin
 	call waitkey
 ret
+	.msg db 'This is a test!',0
 
-newwin:			;AL,x1, AH,y1, BL,x2, BH,y2
+newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, SI,window contents
 	pusha
 	call malocbig
 	mov [.mem],ax
+	mov di,[.mem]
+	call copystring
 	mov si,[guipage]
 	mov ax,1
 	call malocsmall
@@ -74,7 +64,13 @@ displaywin:		;AX,win ID
 	movzx si,byte[bx + 2]
 	movzx di,byte[bx + 3]
 	call drawwin
+	mov si,[bx + 4]
+	call printwin
 	popa
+ret
+
+printwin:
+	call print
 ret
 
 ;0xA0000
