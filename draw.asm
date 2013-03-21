@@ -1,5 +1,6 @@
 guipage dw 0
 initgui:
+	call initfont
 	call malocbig
 	mov [guipage],ax
 
@@ -22,6 +23,14 @@ initgui:
 ret
 	.msg db 'This is a test!',0
 	.inwin db 5,5,50,50
+
+fontpage dw 0
+initfont:
+	mov ax,1130h
+	mov bh,6
+	int 10h
+	mov [fontpage],bp
+ret
 
 newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, SI,window contents
 	pusha
@@ -71,24 +80,47 @@ displaywin:		;AX,win ID
 ret
 
 printwin:
-	push si
-	call getwindata
-	mov bx,ax
-	movzx cx,byte[bx]
-	movzx dx,byte[bx + 1]
-	movzx si,byte[bx + 2]
-	movzx di,byte[bx + 3]
-	pop bx
-	movzx ax,byte[bx]
-	add cx,ax
-	movzx ax,byte[bx + 1]
-	add dx,ax
-	movzx ax,byte[bx + 2]
-	add si,ax
-	movzx ax,byte[bx + 3]
-	add di,ax
-	call drawwin
+	mov cx,10
+	mov dx,10
+	call drawglyph
 ret
+
+drawglyph:		;cx,x, dx,y, si,char
+	pusha
+	mov di,[fontpage]
+	mov byte[.row],0
+	xor bx,bx
+	add di,16
+	mov al,byte[di]
+.mainloop
+	shl al,1
+	jc .draw
+	.drawok
+	add bx,1
+	add cx,1
+	cmp bx,9
+	jge .next
+	jmp .mainloop
+.next
+	add dx,1
+	sub cx,8
+	add di,1
+	mov al,byte[di]
+	xor bx,bx
+	add byte[.row],1
+	cmp byte[.row],16
+	jge .done
+	jmp .mainloop
+.draw
+	push ax
+	mov al,02
+	call plot
+	pop ax
+	jmp .drawok
+.done
+	popa
+ret
+	.row db 0
 
 ;0xA0000
 plot:
@@ -129,10 +161,6 @@ drawvline:
 	jmp .loop
 .done
 	popa
-ret
-
-drawbutn:		;cx,x dx,y
-	
 ret
 
 drawwin:
