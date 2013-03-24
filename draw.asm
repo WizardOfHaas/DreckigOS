@@ -17,13 +17,12 @@ initgui:
 	mov ah,5
 	mov bl,205
 	mov bh,195
-	mov si,.inwin
+	mov si,.msg
 	call newwin
 	call displaywin
 	call waitkey
 ret
 	.msg db 'This is a test!',0
-	.inwin db 5,5,50,50
 
 fontpage dw 0
 initfont:
@@ -89,6 +88,7 @@ ret			;AX,pointer to window data entry
 
 displaywin:		;AX,win ID
 	pusha
+	push ax
 	call getwindata
 	mov bx,ax
 	movzx cx,byte[bx]
@@ -97,19 +97,32 @@ displaywin:		;AX,win ID
 	movzx di,byte[bx + 3]
 	call drawwin
 	mov si,[bx + 4]
+	pop ax
+	mov si,.msg
 	call printwin
 	popa
 ret
+	.msg db 'This is a test!',0
 
-printwin:
-	mov si,'A'
-	mov cx,10
-	mov dx,10
+printwin:		;SI,string, AX,win id
+	pusha
+	call getwindata
+	mov di,ax
+	mov cx,[di]
+	mov dx,[di + 1]
+	add cx,1
+	add dx,1
+	mov di,si
+.loop
+	cmp byte[di],0
+	je .done
+	mov si,[di]
 	call drawglyph
-	mov si,'a'
-	mov cx,10
-	mov dx,26
-	call drawglyph
+	add cx,8
+	add di,1
+	jmp .loop
+.done
+	popa
 ret
 
 drawglyph:		;cx,x, dx,y, si,char
@@ -196,6 +209,7 @@ drawvline:
 ret
 
 drawwin:
+	pusha
 	mov al,15
 	call fillbox
 	mov al,00
@@ -204,7 +218,7 @@ drawwin:
 	sub si,1
 	sub di,1
 	call fillbox
-	
+	popa
 ret
 
 fillbox:
