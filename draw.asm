@@ -108,20 +108,26 @@ printwin:		;SI,string, AX,win id
 	pusha
 	call getwindata
 	mov di,ax
-	mov cx,[di]
-	mov dx,[di + 1]
+	movzx cx,byte[di]
+	movzx dx,byte[di + 1]
 	add cx,1
 	add dx,1
-	mov di,si
 .loop
-	cmp byte[di],0
+	cmp byte[si],0
 	je .done
-	mov si,[di]
-	call drawglyph
+	call putchar
 	add cx,8
-	add di,1
+	add si,1
 	jmp .loop
 .done
+	popa
+ret
+
+putchar:
+	pusha
+	mov di,si
+	movzx si,byte[di]
+	call drawglyph
 	popa
 ret
 
