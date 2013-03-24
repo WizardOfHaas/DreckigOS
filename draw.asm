@@ -102,11 +102,11 @@ displaywin:		;AX,win ID
 ret
 
 printwin:
-	mov si,0
+	mov si,'A'
 	mov cx,10
 	mov dx,10
 	call drawglyph
-	mov si,1
+	mov si,'a'
 	mov cx,10
 	mov dx,26
 	call drawglyph
@@ -121,7 +121,7 @@ drawglyph:		;cx,x, dx,y, si,char
 	mul si
 	mov di,ax
 	add di,[fontpage]
-	sub di,930
+	sub di,920
 	pop dx
 	mov al,byte[di]
 .mainloop
