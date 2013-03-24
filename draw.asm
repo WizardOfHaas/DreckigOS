@@ -1,6 +1,7 @@
 guipage dw 0
 initgui:
 	call initfont
+
 	call malocbig
 	mov [guipage],ax
 
@@ -26,6 +27,27 @@ ret
 
 fontpage dw 0
 initfont:
+	call malocbig
+	mov [fontpage],ax
+	call malocbig
+	call malocbig
+	call malocbig
+	mov si,[fontpage]
+	push ds
+	push es
+	mov ax,1130h
+	mov bh,6
+	int 10h
+	push es
+	pop ds
+	pop es
+	mov si,bp
+	mov cx,256*16/4
+	rep movsd
+	pop ds
+ret
+
+initfontold:
 	mov ax,1130h
 	mov bh,6
 	int 10h
@@ -80,17 +102,27 @@ displaywin:		;AX,win ID
 ret
 
 printwin:
+	mov si,0
 	mov cx,10
 	mov dx,10
+	call drawglyph
+	mov si,1
+	mov cx,10
+	mov dx,26
 	call drawglyph
 ret
 
 drawglyph:		;cx,x, dx,y, si,char
 	pusha
-	mov di,[fontpage]
 	mov byte[.row],0
 	xor bx,bx
-	add di,16
+	push dx
+	mov ax,16
+	mul si
+	mov di,ax
+	add di,[fontpage]
+	sub di,930
+	pop dx
 	mov al,byte[di]
 .mainloop
 	shl al,1
@@ -103,7 +135,7 @@ drawglyph:		;cx,x, dx,y, si,char
 	jmp .mainloop
 .next
 	add dx,1
-	sub cx,8
+	sub cx,9
 	add di,1
 	mov al,byte[di]
 	xor bx,bx
