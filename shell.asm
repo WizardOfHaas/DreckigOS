@@ -287,4 +287,6 @@ reboot db 	're',0,0,0,0
 		dw reboot1
 chr db 		'chr',0,0,0
 		dw changeroot
+gui db 		'gui',0,0,0
+		dw startgui
 dw '**'

@@ -4,7 +4,9 @@ initgui:
 
 	call malocbig
 	mov [guipage],ax
+ret
 
+startgui:	
 	xor ax,ax
 	mov al,13h
 	int 10h
@@ -15,17 +17,18 @@ initgui:
 
 	mov al,5
 	mov ah,5
-	mov bl,205
-	mov bh,195
+	mov bl,200
+	mov bh,50
 	mov si,.msg
 	call newwin
 	call displaywin
 	call waitkey
 ret
-	.msg db 'This is a test!',0
+	.msg db 'Welcom to WINDv3!',10,'A GUI for Dreckig OS!',0
 
 fontpage dw 0
 initfont:
+	pusha
 	call malocbig
 	mov [fontpage],ax
 	call malocbig
@@ -35,7 +38,7 @@ initfont:
 	push ds
 	push es
 	mov ax,1130h
-	mov bh,6
+	mov bh,3
 	int 10h
 	push es
 	pop ds
@@ -44,6 +47,7 @@ initfont:
 	mov cx,256*16/4
 	rep movsd
 	pop ds
+	popa
 ret
 
 initfontold:
@@ -98,11 +102,9 @@ displaywin:		;AX,win ID
 	call drawwin
 	mov si,[bx + 4]
 	pop ax
-	mov si,.msg
 	call printwin
 	popa
 ret
-	.msg db 'This is a test!',0
 
 printwin:		;SI,string, AX,win id
 	pusha
@@ -110,18 +112,40 @@ printwin:		;SI,string, AX,win id
 	mov di,ax
 	movzx cx,byte[di]
 	movzx dx,byte[di + 1]
+	movzx bx,byte[di + 2]
+	sub bx,9
 	add cx,1
 	add dx,1
+	mov [.x],cx
+	mov [.y],dx
+	mov [.r],bx
 .loop
 	cmp byte[si],0
 	je .done
+	cmp byte[si],10
+	je .nl
+	cmp cx,[.r]
+	jge .wrap
 	call putchar
 	add cx,8
 	add si,1
 	jmp .loop
+.nl
+	add si,1
+	mov cx,[.x]
+	add dx,16
+	jmp .loop
+.wrap
+	mov cx,[.x]
+	add cx,1
+	add dx,8
+	jmp .loop
 .done
 	popa
 ret
+	.x db 0,0
+	.y db 0,0
+	.r db 0,0
 
 putchar:
 	pusha
@@ -136,11 +160,11 @@ drawglyph:		;cx,x, dx,y, si,char
 	mov byte[.row],0
 	xor bx,bx
 	push dx
-	mov ax,16
+	mov ax,8
 	mul si
 	mov di,ax
 	add di,[fontpage]
-	sub di,920
+	sub di,916
 	pop dx
 	mov al,byte[di]
 .mainloop
@@ -159,7 +183,7 @@ drawglyph:		;cx,x, dx,y, si,char
 	mov al,byte[di]
 	xor bx,bx
 	add byte[.row],1
-	cmp byte[.row],16
+	cmp byte[.row],8
 	jge .done
 	jmp .mainloop
 .draw
