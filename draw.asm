@@ -16,15 +16,27 @@ startgui:
 	int 10h
 
 	mov al,5
-	mov ah,5
+	mov ah,25
 	mov bl,200
 	mov bh,50
 	mov si,.msg
 	call newwin
-	call displaywin
+
+	mov al,50
+	mov ah,75
+	mov bl,100
+	mov bh,100
+	mov si,.msg2
+	call newwin
+
+	call displayallwins
+	call waitkey
+	mov ax,1
+	call clearwin
 	call waitkey
 ret
-	.msg db 'Welcom to WINDv3!',10,'A GUI for Dreckig OS!',0
+	.msg db 'Welcome to WINDv3!',10,'A GUI for Dreckig OS!',0
+	.msg2 db 'Test!',0
 
 fontpage dw 0
 initfont:
@@ -106,6 +118,34 @@ displaywin:		;AX,win ID
 	popa
 ret
 
+clearwin:
+	pusha
+	call getwindata
+	mov bx,ax
+	movzx cx,byte[bx]
+	movzx dx,byte[bx + 1]
+	movzx si,byte[bx + 2]
+	movzx di,byte[bx + 3]
+	mov ax,00
+	call fillbox
+	popa
+ret
+
+displayallwins:
+	pusha
+	mov si,[guipage]
+	xor ax,ax
+.loop
+	cmp byte[si],'0'
+	je .done
+	call displaywin
+	add si,6
+	add ax,1
+	jmp .loop
+.done
+	popa
+ret
+
 printwin:		;SI,string, AX,win id
 	pusha
 	call getwindata
@@ -113,9 +153,9 @@ printwin:		;SI,string, AX,win id
 	movzx cx,byte[di]
 	movzx dx,byte[di + 1]
 	movzx bx,byte[di + 2]
-	sub bx,9
-	add cx,1
-	add dx,1
+	sub bx,10
+	add cx,2
+	add dx,2
 	mov [.x],cx
 	mov [.y],dx
 	mov [.r],bx
@@ -133,7 +173,7 @@ printwin:		;SI,string, AX,win id
 .nl
 	add si,1
 	mov cx,[.x]
-	add dx,16
+	add dx,8
 	jmp .loop
 .wrap
 	mov cx,[.x]
@@ -223,6 +263,12 @@ drawhline:		;IN - cx,dx, start, si,di, stop, al, color
 	jge .done
 	jmp .loop
 .done
+	popa
+ret
+
+drawbtn:
+	pusha
+	
 	popa
 ret
 
