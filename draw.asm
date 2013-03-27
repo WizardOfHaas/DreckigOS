@@ -15,6 +15,8 @@ startgui:
 	mov bl,02h
 	int 10h
 
+	call initdock
+
 	mov al,5
 	mov ah,25
 	mov bl,200
@@ -37,6 +39,61 @@ startgui:
 ret
 	.msg db 'Welcome to WINDv3!',10,'A GUI for Dreckig OS!',0
 	.msg2 db 'Test!',0
+
+dockpage dw 0
+initdock:
+	pusha
+	call maloc
+	mov [dockpage],ax
+	
+	mov si,.msg
+	call addtodock
+	mov si,.msg1
+	call addtodock
+
+	call drawdock
+	popa
+ret
+	.msg db 'Test!',0
+	.msg1 db 'Another!!',0
+
+addtodock:		;SI,name to add to dock
+	mov di,[dockpage]
+	add di,[.end]
+	add word[.end],16
+	call copystring
+	mov byte[di + 8],0
+ret
+	.end dw 0
+
+drawdock:
+	pusha
+	mov cx,256
+	mov dx,0
+	mov si,320
+	mov di,200
+	mov ax,7
+	call fillbox
+	xor ax,ax
+	mov cx,259
+	mov dx,4
+	mov si,320
+	mov di,196
+	call fillbox
+
+	mov cx,260
+	mov dx,5
+	mov si,[dockpage]
+.loop
+	cmp byte[si],'0'
+	je .done
+	call printgui
+	add dx,8
+	add si,16
+	jmp .loop
+.done
+	popa
+ret
 
 fontpage dw 0
 initfont:
@@ -192,6 +249,19 @@ putchar:
 	mov di,si
 	movzx si,byte[di]
 	call drawglyph
+	popa
+ret
+
+printgui:		;cx,x, dx,y, si,string
+	pusha
+.loop
+	cmp byte[si],0
+	je .done
+	call putchar
+	add cx,8
+	add si,1
+	jmp .loop
+.done
 	popa
 ret
 
