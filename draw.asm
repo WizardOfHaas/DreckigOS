@@ -32,6 +32,9 @@ startgui:
 	call newwin
 
 	call displayallwins
+
+	call rundock	
+
 	call waitkey
 	mov ax,1
 	call clearwin
@@ -57,12 +60,86 @@ ret
 	.msg db 'Test!',0
 	.msg1 db 'Another!!',0
 
+selected dw 0
+selectable dw 0
+
+rundock:
+.loop
+	mov si,selected
+	mov di,selectable
+	call dokeys
+	jc .done
+	
+	call clearsel
+	call drawsel
+	jmp .loop
+.done
+ret
+
+dokeys:
+	call waitkey
+	clc
+	cmp al,'q'
+	je .esc
+	cmp al,13
+	je .enter
+	cmp ah,48h
+	je .up
+	cmp ah,50h
+	jne .done
+	mov dl,byte[di]
+	sub dl,1
+	cmp byte[si],dl
+	jge .done
+	add byte[si],1
+	jmp .done
+.esc
+	mov ax,'QQ'
+	jmp .done
+.enter
+	stc
+	jmp .done
+.up
+	cmp byte[si],0
+	je .done
+	sub byte[si],1
+.done
+ret
+
+clearsel:
+	pusha
+	mov cx,259
+	mov dx,4
+	mov si,263
+	mov di,196
+	xor ax,ax
+	call fillbox
+	popa
+ret
+
+drawsel:
+	pusha
+	mov ax,[selected]
+	mov bx,8
+	mul bx
+	add ax,4
+	mov cx,259
+	mov dx,ax
+	mov si,263
+	mov di,ax
+	add di,8
+	mov ax,15
+	call fillbox
+	popa
+ret
+
 addtodock:		;SI,name to add to dock
 	mov di,[dockpage]
 	add di,[.end]
 	add word[.end],16
 	call copystring
-	mov byte[di + 8],0
+	mov byte[di + 7],0
+	add byte[selectable],1
 ret
 	.end dw 0
 
@@ -81,12 +158,16 @@ drawdock:
 	mov di,196
 	call fillbox
 
-	mov cx,260
+	mov cx,265
 	mov dx,5
 	mov si,[dockpage]
+	mov bx,si
+	add bx,1024
 .loop
 	cmp byte[si],'0'
 	je .done
+	cmp si,bx
+	jge .done
 	call printgui
 	add dx,8
 	add si,16
