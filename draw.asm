@@ -22,6 +22,7 @@ startgui:
 	mov bl,200
 	mov bh,50
 	mov si,.msg
+	mov di,.nam
 	call newwin
 
 	mov al,50
@@ -29,6 +30,7 @@ startgui:
 	mov bl,100
 	mov bh,100
 	mov si,.msg2
+	mov di,.nam2
 	call newwin
 
 	call displayallwins
@@ -41,37 +43,37 @@ startgui:
 	call waitkey
 ret
 	.msg db 'Welcome to WINDv3!',10,'A GUI for Dreckig OS!',0
+	.nam db 'Hello',0
 	.msg2 db 'Test!',0
+	.nam2 db 'A test',0
 
 dockpage dw 0
 initdock:
 	pusha
 	call maloc
 	mov [dockpage],ax
-	
-	mov si,.msg
-	call addtodock
-	mov si,.msg1
-	call addtodock
 
 	call drawdock
 	popa
 ret
-	.msg db 'Test!',0
-	.msg1 db 'Another!!',0
 
 selected dw 0
 selectable dw 0
 
 rundock:
+	call drawdock
 .loop
 	mov si,selected
 	mov di,selectable
 	call dokeys
-	jc .done
+	jc .select
 	
 	call clearsel
 	call drawsel
+	jmp .loop
+.select
+	mov ax,[selected]
+	call selwin
 	jmp .loop
 .done
 ret
@@ -128,7 +130,7 @@ drawsel:
 	mov si,263
 	mov di,ax
 	add di,8
-	mov ax,15
+	mov ax,2
 	call fillbox
 	popa
 ret
@@ -207,7 +209,8 @@ initfontold:
 	mov [fontpage],bp
 ret
 
-newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, SI,window contents
+newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, SI,window contents, DI,win name
+	push di
 	pusha
 	call malocbig
 	mov [.mem],ax
@@ -230,6 +233,8 @@ newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, SI,window contents
 	sub ax,[guipage]
 	mov bx,6
 	div bx
+	pop si
+	call addtodock
 ret			;AX,win ID, SI,win page
 	.mem dw 0
 	.entry dw 0
@@ -253,6 +258,20 @@ displaywin:		;AX,win ID
 	mov si,[bx + 4]
 	pop ax
 	call printwin
+	popa
+ret
+
+
+selwin:		;AX,win id
+	pusha
+	call getwindata
+	mov bx,ax
+	movzx cx,byte[bx]
+	movzx dx,byte[bx + 1]
+	movzx si,byte[bx + 2]
+	movzx di,byte[bx + 3]
+	mov ax,4
+	call drawbox
 	popa
 ret
 
@@ -417,12 +436,6 @@ drawhline:		;IN - cx,dx, start, si,di, stop, al, color
 	popa
 ret
 
-drawbtn:
-	pusha
-	
-	popa
-ret
-
 drawvline:
 	pusha
 .loop
@@ -433,6 +446,13 @@ drawvline:
 	jmp .loop
 .done
 	popa
+ret
+
+drawbox:
+	pusha
+	mov si,cx
+	call drawhline
+	popa	
 ret
 
 drawwin:
