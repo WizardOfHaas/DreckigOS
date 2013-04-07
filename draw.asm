@@ -270,7 +270,7 @@ selwin:		;AX,win id
 	movzx dx,byte[bx + 1]
 	movzx si,byte[bx + 2]
 	movzx di,byte[bx + 3]
-	mov ax,4
+	mov al,4
 	call drawbox
 	popa
 ret
@@ -450,8 +450,8 @@ ret
 
 drawbox:
 	pusha
-	mov si,cx
 	call drawhline
+	call drawvline
 	popa	
 ret
 
