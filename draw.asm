@@ -73,9 +73,22 @@ rundock:
 	jmp .loop
 .select
 	mov ax,[selected]
-	call selwin
+	call switchto
 	jmp .loop
 .done
+ret
+
+switchto:	;AX, win id
+	push ax
+	call selwin
+.loop
+	call dokeys
+	cmp ax,'QQ'
+	je .done
+	jmp .loop
+.done
+	pop ax
+	call displaywin
 ret
 
 dokeys:
