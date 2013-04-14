@@ -21,6 +21,7 @@ startgui:
 	mov ah,25
 	mov bl,200
 	mov bh,50
+	mov cx,beep
 	mov si,.msg
 	mov di,.nam
 	call newwin
@@ -29,6 +30,7 @@ startgui:
 	mov ah,75
 	mov bl,100
 	mov bh,100
+	mov cx,beep
 	mov si,.msg2
 	mov di,.nam2
 	call newwin
@@ -83,8 +85,7 @@ switchto:	;AX, win id
 	call selwin
 .loop
 	call dokeys
-	cmp ax,'QQ'
-	je .done
+	jc .done
 	jmp .loop
 .done
 	pop ax
@@ -222,7 +223,7 @@ initfontold:
 	mov [fontpage],bp
 ret
 
-newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, SI,window contents, DI,win name
+newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, CX,proc, SI,window contents, DI,win name
 	push di
 	pusha
 	call malocbig
@@ -242,9 +243,10 @@ newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, SI,window contents, DI,win name
 	mov byte[si + 3],bh
 	mov di,[.mem]
 	mov word[si + 4],di
+	mov word[si + 4],cx
 	mov ax,si
 	sub ax,[guipage]
-	mov bx,6
+	mov bx,8			;Tryin to make entries bigger!!!! BUGERS!!!
 	div bx
 	pop si
 	call addtodock
@@ -253,7 +255,7 @@ ret			;AX,win ID, SI,win page
 	.entry dw 0
 
 getwindata:			;AX,win ID
-	mov bx,6
+	mov bx,8
 	mul bx
 	add ax,[guipage]
 ret			;AX,pointer to window data entry
@@ -283,7 +285,7 @@ selwin:		;AX,win id
 	movzx dx,byte[bx + 1]
 	movzx si,byte[bx + 2]
 	movzx di,byte[bx + 3]
-	mov al,4
+	mov al,15
 	call drawbox
 	popa
 ret
@@ -309,7 +311,7 @@ displayallwins:
 	cmp byte[si],'0'
 	je .done
 	call displaywin
-	add si,6
+	add si,8
 	add ax,1
 	jmp .loop
 .done
@@ -465,12 +467,19 @@ drawbox:
 	pusha
 	call drawhline
 	call drawvline
+	push dx
+	mov dx,di
+	call drawhline
+	pop dx
+	mov cx,si
+	sub cx,1
+	call drawvline
 	popa	
 ret
 
 drawwin:
 	pusha
-	mov al,15
+	mov ax,7
 	call fillbox
 	mov al,00
 	add cx,1
