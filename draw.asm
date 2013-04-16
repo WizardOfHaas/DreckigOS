@@ -83,11 +83,9 @@ ret
 switchto:	;AX, win id
 	push ax
 	call selwin
-.loop
-	call dokeys
-	jc .done
-	jmp .loop
-.done
+	call getwindata
+	mov si,ax
+	call [si + 6]
 	pop ax
 	call displaywin
 ret
@@ -231,10 +229,9 @@ newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, CX,proc, SI,window contents, DI,win name
 	mov di,[.mem]
 	call copystring
 	mov si,[guipage]
-	mov ax,1
-	call malocsmall
-	sub ax,1
-	mov [.entry],ax
+	add si,word[.next]
+	add word[.next],8
+	mov [.entry],si
 	popa
 	mov si,[.entry]
 	mov byte[si],al
@@ -243,7 +240,7 @@ newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, CX,proc, SI,window contents, DI,win name
 	mov byte[si + 3],bh
 	mov di,[.mem]
 	mov word[si + 4],di
-	mov word[si + 4],cx
+	mov word[si + 6],cx
 	mov ax,si
 	sub ax,[guipage]
 	mov bx,8			;Tryin to make entries bigger!!!! BUGERS!!!
@@ -253,6 +250,7 @@ newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, CX,proc, SI,window contents, DI,win name
 ret			;AX,win ID, SI,win page
 	.mem dw 0
 	.entry dw 0
+	.next dw 0
 
 getwindata:			;AX,win ID
 	mov bx,8
