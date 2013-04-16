@@ -30,7 +30,7 @@ startgui:
 	mov ah,75
 	mov bl,100
 	mov bh,100
-	mov cx,beep
+	mov cx,guialert
 	mov si,.msg2
 	mov di,.nam2
 	call newwin
@@ -243,7 +243,7 @@ newwin:			;AL,x1, AH,y1, BL,x2, BH,y2, CX,proc, SI,window contents, DI,win name
 	mov word[si + 6],cx
 	mov ax,si
 	sub ax,[guipage]
-	mov bx,8			;Tryin to make entries bigger!!!! BUGERS!!!
+	mov bx,8
 	div bx
 	pop si
 	call addtodock
@@ -274,6 +274,36 @@ displaywin:		;AX,win ID
 	popa
 ret
 
+guialert:
+	mov cx,119
+	mov dx,69
+	mov si,171
+	mov di,101
+	mov al,15
+	pusha
+	call fillbox
+	mov cx,120
+	mov dx,70
+	mov si,170
+	mov di,100
+	mov al,4
+	call fillbox
+
+	mov cx,121
+	mov dx,71
+	mov si,.msg
+	call printgui
+
+	call waitkey
+	popa
+	xor ax,ax
+	call fillbox
+	call displayallwins
+ret
+	.msg db 'ALERT!',0
+
+clearwinarea:
+rer
 
 selwin:		;AX,win id
 	pusha
