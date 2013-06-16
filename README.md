@@ -1,3 +1,6 @@
+Dreckig OS development has halted. It has been reincarnated as <a href="https://github.com/WizardOfHaas/d264b">d264b</a> in glorious 64 bit! 
+If anyone wants to take the reigns and go down the road Dreckig OS was on let me know and I'll set you up. 
+
 <pre>
      ________________________
 =====|Dreckig OS User Manual|==
