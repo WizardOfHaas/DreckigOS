@@ -14,7 +14,6 @@
 ;	copyright Sean Haas 2011-14
 ORG 100h
 jmp short Init
-db 'For Jamie'
 sc1 db 0
 Init:
 	cli
